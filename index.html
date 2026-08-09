@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riad Timija · Exploitation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#08090B;--panel:#101318;--panel2:#171B22;--line:#242A32;--line2:#2E3540;
+  --steel:#8A9099;--bone:#E9E4D7;--gold:#C9A24B;--gold-bright:#E7C766;
+  --blood:#A32C26;--blood-soft:#CB574E;--midnight:#16233F;--green:#5D9B78;--greenb:#7CC39B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--bone);font-family:"IBM Plex Sans",sans-serif;
+  line-height:1.5;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 50% -8%,rgba(201,162,75,.05),transparent 55%);
+  min-height:100vh}
+.mono{font-family:"IBM Plex Mono",monospace}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--steel)}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit}
+
+/* ---------- App shell ---------- */
+.app{max-width:1120px;margin:0 auto;padding:22px 20px 90px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);padding-bottom:18px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .kick{color:var(--gold)}
+.brand h1{font-family:"Fraunces",serif;font-weight:700;font-size:26px;letter-spacing:-.01em}
+.brand h1 span{color:var(--gold)}
+.toolbtns{display:flex;gap:8px;flex-wrap:wrap}
+.tbtn{background:var(--panel);border:1px solid var(--line);color:var(--steel);border-radius:8px;
+  padding:8px 12px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;transition:.15s}
+.tbtn:hover{border-color:var(--gold);color:var(--gold)}
+
+.tabs{display:flex;gap:4px;margin:20px 0 24px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;color:var(--steel);padding:11px 16px;font-family:"IBM Plex Mono",monospace;
+  font-size:12px;letter-spacing:.1em;text-transform:uppercase;position:relative;transition:.15s}
+.tab:hover{color:var(--bone)}
+.tab.active{color:var(--gold)}
+.tab.active::after{content:"";position:absolute;left:12px;right:12px;bottom:-1px;height:2px;background:var(--gold)}
+.view{display:none}.view.active{display:block}
+
+/* ---------- KPI row ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+@media(max-width:680px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px}
+.kpi .v{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;color:var(--gold)}
+.kpi .l{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--steel);margin-top:4px}
+
+/* ---------- Quick-add ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px}
+.card h2{font-family:"Fraunces",serif;font-size:17px;font-weight:600;margin-bottom:14px;
+  display:flex;align-items:center;gap:9px}
+.card h2 .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--gold);
+  border:1px solid var(--gold);border-radius:4px;padding:2px 6px}
+.form-grid{display:grid;gap:11px}
+.fg-res{grid-template-columns:1.4fr .9fr 1fr 1fr .7fr 1fr;align-items:end}
+.fg-exp{grid-template-columns:1fr 1fr 2fr 1fr 1fr;align-items:end}
+.fg-int{grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr;align-items:end}
+@media(max-width:900px){.fg-res,.fg-exp,.fg-int{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--steel);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--ink);border:1px solid var(--line);
+  border-radius:8px;color:var(--bone);padding:10px 11px;font-size:13.5px;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field input[type=number]{font-family:"IBM Plex Mono",monospace}
+select{color-scheme:dark;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--steel) 50%),linear-gradient(135deg,var(--steel) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px}
+input[type=date]{color-scheme:dark}
+.addbtn{background:var(--gold);border:1px solid var(--gold);color:#1a1408;border-radius:8px;
+  padding:10px 16px;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;transition:.15s;white-space:nowrap}
+.addbtn:hover{background:var(--gold-bright)}
+.hint{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--steel);margin-top:9px}
+
+/* ---------- Tables ---------- */
+.tablewrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--steel);text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:500}
+td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--panel2)}
+td.num,th.num{font-family:"IBM Plex Mono",monospace;text-align:right}
+.pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;
+  padding:3px 8px;border-radius:20px;border:1px solid var(--line2);color:var(--steel)}
+.pill.ok{color:var(--greenb);border-color:rgba(93,155,120,.5)}
+.pill.warn{color:var(--gold-bright);border-color:rgba(201,162,75,.5)}
+.pill.off{color:var(--blood-soft);border-color:rgba(163,44,38,.5)}
+.del{background:none;border:1px solid var(--line);color:var(--steel);border-radius:6px;
+  width:28px;height:28px;font-size:14px;transition:.15s}
+.del:hover{border-color:var(--blood);color:var(--blood-soft)}
+.empty-row{text-align:center;color:var(--steel);padding:30px;font-size:13px}
+tfoot td{font-family:"IBM Plex Mono",monospace;font-weight:600;border-top:1px solid var(--line2);
+  background:var(--panel2);color:var(--bone)}
+
+/* ---------- Relevé controls ---------- */
+.periodbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:6px}
+.periodbar .field{min-width:120px}
+.months{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.mchip{background:var(--panel);border:1px solid var(--line);color:var(--steel);border-radius:20px;
+  padding:6px 12px;font-family:"IBM Plex Mono",monospace;font-size:11px;transition:.15s}
+.mchip:hover{border-color:var(--gold);color:var(--gold)}
+.mchip.active{background:var(--gold);border-color:var(--gold);color:#1a1408;font-weight:600}
+.docswitch{display:flex;gap:6px;margin:16px 0}
+.dsw{background:var(--panel);border:1px solid var(--line);color:var(--steel);border-radius:8px;
+  padding:8px 14px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;transition:.15s}
+.dsw.active{border-color:var(--gold);color:var(--gold)}
+
+/* ---------- Paper (light document, printable) ---------- */
+.paper-shell{display:flex;justify-content:center;margin-top:8px}
+.paper{background:#FBFAF6;color:#1A1A1A;width:100%;max-width:800px;padding:46px 50px;
+  border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+  font-family:"IBM Plex Sans",sans-serif;line-height:1.55}
+.paper.hidden{display:none}
+.paper .phead{display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2px solid #1A1A1A;padding-bottom:18px;margin-bottom:8px}
+.paper .emit .co{font-family:"Fraunces",serif;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.paper .emit .co b{color:#9A7A1E}
+.paper .emit .line{font-size:11.5px;color:#555;font-family:"IBM Plex Mono",monospace;margin-top:3px}
+.paper .doctitle{text-align:right}
+.paper .doctitle .t{font-family:"Fraunces",serif;font-size:20px;font-weight:600}
+.paper .doctitle .meta{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#555;margin-top:5px}
+.paper .forwho{display:flex;justify-content:space-between;margin:20px 0 26px;gap:20px;flex-wrap:wrap}
+.paper .forwho .box .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#888;margin-bottom:3px}
+.paper .forwho .box .v{font-size:14px;font-weight:500}
+.paper h3.sec{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:#9A7A1E;margin:22px 0 8px;border-bottom:1px solid #D8D2C2;padding-bottom:5px}
+.paper table.doc{width:100%;border-collapse:collapse;margin-top:4px}
+.paper table.doc td{border:none;border-bottom:1px solid #E6E1D3;padding:8px 0;font-size:13px;vertical-align:top}
+.paper table.doc td.r{text-align:right;font-family:"IBM Plex Mono",monospace}
+.paper table.doc tr:last-child td{border-bottom:none}
+.paper .totals{margin-top:14px;margin-left:auto;width:min(320px,100%)}
+.paper .totals .row{display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px;
+  font-family:"IBM Plex Mono",monospace}
+.paper .totals .row .lab{color:#555}
+.paper .totals .row.grand{border-top:2px solid #1A1A1A;margin-top:8px;padding-top:12px;font-size:17px;font-weight:600}
+.paper .note{font-size:11px;color:#777;margin-top:26px;border-top:1px solid #E6E1D3;padding-top:12px;line-height:1.5}
+.paper .sign{display:flex;justify-content:space-between;margin-top:40px;gap:30px}
+.paper .sign .s{flex:1}
+.paper .sign .s .l{border-top:1px solid #1A1A1A;padding-top:6px;font-family:"IBM Plex Mono",monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#666}
+.setup-warn{background:rgba(163,44,38,.12);border:1px solid rgba(163,44,38,.4);color:var(--blood-soft);
+  border-radius:10px;padding:12px 14px;font-size:12.5px;margin-bottom:16px}
+
+/* ---------- Settings ---------- */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:680px){.settings-grid{grid-template-columns:1fr}}
+.savebar{margin-top:16px;display:flex;align-items:center;gap:14px}
+
+/* ---------- Toast ---------- */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--panel2);border:1px solid var(--gold);color:var(--bone);padding:11px 20px;
+  border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:var(--blood)}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink);z-index:99}
+#loading .l{font-family:"Fraunces",serif;font-size:20px;color:var(--gold)}
+#loading .s{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--steel);margin-top:8px;text-align:center}
+
+@media print{
+  body{background:#fff}
+  .app>.topbar,.app>.tabs,.periodbar,.months,.docswitch,#reveleControls,.toolbtns,#toast,.setup-warn{display:none!important}
+  .view:not(#v-releve){display:none!important}
+  #v-releve h2,#v-releve .card{display:none!important}
+  .paper-shell{margin:0}
+  .paper{box-shadow:none;border-radius:0;max-width:100%;padding:0}
+  .paper.hidden{display:none!important}
+  @page{margin:16mm}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="loading"><div><div class="l">Riad Timija</div><div class="s">Ouverture de la base SQL…</div></div></div>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <span class="eyebrow kick">Plateforme d'exploitation · Marrakech</span>
+      <h1>RIAD <span>TIMIJA</span></h1>
+    </div>
+    <div class="toolbtns">
+      <button class="tbtn" id="expBtn">Exporter .sqlite</button>
+      <button class="tbtn" id="impBtn">Importer</button>
+      <input type="file" id="impFile" accept=".sqlite,.db" style="display:none">
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-v="reservations">Réservations</button>
+    <button class="tab" data-v="depenses">Dépenses</button>
+    <button class="tab" data-v="interventions">Ménage &amp; maintenance</button>
+    <button class="tab" data-v="releve">Relevé</button>
+    <button class="tab" data-v="params">Paramètres</button>
+  </div>
+
+  <!-- ============ RESERVATIONS ============ -->
+  <section class="view active" id="v-reservations">
+    <div class="kpis" id="resKpis"></div>
+    <div class="card">
+      <h2><span class="n">01</span>Nouvelle réservation</h2>
+      <div class="form-grid fg-res">
+        <div class="field"><label>Invité</label><input type="text" id="r_guest" placeholder="Nom" autofocus></div>
+        <div class="field"><label>Canal</label><select id="r_channel"><option>Airbnb</option><option>Booking</option><option>Direct</option><option>Autre</option></select></div>
+        <div class="field"><label>Arrivée</label><input type="date" id="r_arr"></div>
+        <div class="field"><label>Départ</label><input type="date" id="r_dep"></div>
+        <div class="field"><label>Pers.</label><input type="number" id="r_pax" min="1" value="2"></div>
+        <div class="field"><label>Montant MAD</label><input type="number" id="r_amount" min="0" placeholder="0"></div>
+      </div>
+      <div class="form-grid fg-res" style="margin-top:11px">
+        <div class="field"><label>Taxe séjour MAD (auto)</label><input type="number" id="r_tax" min="0" placeholder="0"></div>
+        <div class="field"><label>Statut</label><select id="r_status"><option>Confirmée</option><option>En cours</option><option>Terminée</option><option>Annulée</option></select></div>
+        <div class="field" style="grid-column:span 2"><label>Notes</label><input type="text" id="r_notes" placeholder="Demandes, screening, remarques…"></div>
+        <div class="field" style="grid-column:span 2;display:flex;align-items:end"><button class="addbtn" id="r_add" style="width:100%">＋ Ajouter la réservation</button></div>
+      </div>
+      <div class="hint" id="r_calc">Nuits : 0 · taxe calculée : nuits × personnes × tarif des Paramètres.</div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Invité</th><th>Canal</th><th>Séjour</th><th class="num">Nuits</th><th class="num">Pers.</th><th class="num">Montant</th><th class="num">Taxe</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="resBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ DEPENSES ============ -->
+  <section class="view" id="v-depenses">
+    <div class="kpis" id="expKpis"></div>
+    <div class="card">
+      <h2><span class="n">02</span>Nouvelle dépense</h2>
+      <div class="form-grid fg-exp">
+        <div class="field"><label>Date</label><input type="date" id="e_date"></div>
+        <div class="field"><label>Catégorie</label><select id="e_cat"><option>Fournitures</option><option>Blanchisserie</option><option>Charges (eau/élec)</option><option>Services</option><option>Commissions plateforme</option><option>Autre</option></select></div>
+        <div class="field"><label>Description</label><input type="text" id="e_desc" placeholder="Détail"></div>
+        <div class="field"><label>Montant MAD</label><input type="number" id="e_amount" min="0" placeholder="0"></div>
+        <div class="field"><button class="addbtn" id="e_add" style="width:100%">＋ Ajouter</button></div>
+      </div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Date</th><th>Catégorie</th><th>Description</th><th class="num">Montant</th><th></th></tr></thead>
+        <tbody id="expBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ INTERVENTIONS ============ -->
+  <section class="view" id="v-interventions">
+    <div class="kpis" id="intKpis"></div>
+    <div class="card">
+      <h2><span class="n">03</span>Ménage &amp; maintenance</h2>
+      <div class="form-grid fg-int">
+        <div class="field"><label>Date</label><input type="date" id="i_date"></div>
+        <div class="field"><label>Type</label><select id="i_kind"><option>Ménage</option><option>Maintenance</option></select></div>
+        <div class="field"><label>Description</label><input type="text" id="i_desc" placeholder="Tâche / panne"></div>
+        <div class="field"><label>Prestataire</label><input type="text" id="i_prov" placeholder="Qui"></div>
+        <div class="field"><label>Coût MAD</label><input type="number" id="i_cost" min="0" placeholder="0"></div>
+        <div class="field"><label>Statut</label><select id="i_status"><option>Fait</option><option>Planifié</option></select></div>
+      </div>
+      <div style="margin-top:11px"><button class="addbtn" id="i_add">＋ Ajouter l'intervention</button></div>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Prestataire</th><th class="num">Coût</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="intBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ RELEVE ============ -->
+  <section class="view" id="v-releve">
+    <div id="reveleControls">
+      <div class="card">
+        <h2><span class="n">04</span>Relevé consolidé sur période</h2>
+        <div class="months" id="monthChips"></div>
+        <div class="periodbar">
+          <div class="field"><label>Du</label><input type="date" id="p_start"></div>
+          <div class="field"><label>Au</label><input type="date" id="p_end"></div>
+          <div class="field"><button class="addbtn" id="p_calc">Calculer le relevé</button></div>
+        </div>
+        <div class="hint">Une réservation est rattachée au mois de sa date d'arrivée. Dépenses et interventions rattachées à leur propre date.</div>
+        <div class="docswitch">
+          <button class="dsw active" id="sw_releve">Relevé propriétaire</button>
+          <button class="dsw" id="sw_facture">Facture d'honoraires</button>
+          <button class="tbtn" id="printBtn" style="margin-left:auto">Imprimer le document</button>
+          <button class="tbtn" id="genInvoice">Générer la facture (n°)</button>
+        </div>
+      </div>
+    </div>
+    <div id="setupWarn"></div>
+    <div class="paper-shell">
+      <div class="paper" id="paperReleve">Choisis une période puis « Calculer le relevé ».</div>
+      <div class="paper hidden" id="paperFacture"></div>
+    </div>
+  </section>
+
+  <!-- ============ PARAMETRES ============ -->
+  <section class="view" id="v-params">
+    <div class="card">
+      <h2><span class="n">05</span>Entité émettrice &amp; règles fiscales</h2>
+      <div class="settings-grid">
+        <div class="field"><label>Raison sociale</label><input type="text" id="s_raison" placeholder="Keyzen / …"></div>
+        <div class="field"><label>Propriétaire (établi pour)</label><input type="text" id="s_owner" placeholder="Nom du propriétaire"></div>
+        <div class="field"><label>ICE</label><input type="text" id="s_ice"></div>
+        <div class="field"><label>IF (identifiant fiscal)</label><input type="text" id="s_if"></div>
+        <div class="field"><label>RC</label><input type="text" id="s_rc"></div>
+        <div class="field"><label>Patente</label><input type="text" id="s_patente"></div>
+        <div class="field" style="grid-column:span 2"><label>Adresse</label><input type="text" id="s_adresse" placeholder="Rue, Marrakech"></div>
+        <div class="field"><label>Téléphone</label><input type="text" id="s_tel"></div>
+        <div class="field"><label>Email</label><input type="text" id="s_email"></div>
+        <div class="field"><label>Taux TVA % (honoraires)</label><input type="number" id="s_tva" min="0" step="0.1" placeholder="ex : 20"></div>
+        <div class="field"><label>Taxe de séjour MAD / nuit / pers.</label><input type="number" id="s_taxe" min="0" step="0.5" placeholder="ex : 15"></div>
+        <div class="field"><label>Honoraires de gestion %</label><input type="number" id="s_fee" min="0" step="0.5" placeholder="ex : 20"></div>
+        <div class="field"><label>Préfixe de facture</label><input type="text" id="s_prefix" placeholder="TIMIJA"></div>
+        <div class="field"><label>Devise</label><input type="text" id="s_cur" placeholder="MAD"></div>
+      </div>
+      <div class="savebar">
+        <button class="addbtn" id="s_save">Enregistrer les paramètres</button>
+        <span class="hint" id="s_note"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="n">06</span>Factures d'honoraires émises</h2>
+      <div class="tablewrap" style="border:none">
+        <table><thead><tr><th>Numéro</th><th>Période</th><th class="num">HT</th><th class="num">TVA</th><th class="num">TTC</th><th>Émise le</th></tr></thead>
+        <tbody id="invBody"></tbody></table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let db=null, SQL=null;
+const $=id=>document.getElementById(id);
+const todayStr=()=>new Date().toISOString().slice(0,10);
+function toast(m,err){const t=$("toast");t.textContent=m;t.className="show"+(err?" err":"");setTimeout(()=>t.className="",2200);}
+function fmt(n,cur){cur=cur||getP("cur")||"MAD";return (Math.round((+n||0)*100)/100).toLocaleString("fr-FR")+" "+cur;}
+function fmtInt(n){return Math.round(+n||0).toLocaleString("fr-FR");}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function nights(a,b){if(!a||!b)return 0;const d=(new Date(b)-new Date(a))/86400000;return d>0?Math.round(d):0;}
+
+/* ---- DB helpers ---- */
+function run(sql,p=[]){db.run(sql,p);}
+function all(sql,p=[]){const s=db.prepare(sql);s.bind(p);const r=[];while(s.step())r.push(s.getAsObject());s.free();return r;}
+function one(sql,p=[]){const r=all(sql,p);return r[0]||null;}
+function getP(k){const r=one("SELECT v FROM params WHERE k=?",[k]);return r?r.v:"";}
+function setP(k,v){run("INSERT INTO params(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=?",[k,String(v),String(v)]);}
+
+/* Persistance navigateur via IndexedDB (fonctionne sur Netlify / tout hébergement statique) */
+const IDB_NAME="riad_timija",IDB_STORE="kv",IDB_KEY="db_v1";
+function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open(IDB_NAME,1);
+  r.onupgradeneeded=()=>r.result.createObjectStore(IDB_STORE);
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function idbSet(bytes){return idbOpen().then(d=>new Promise((res,rej)=>{
+  const tx=d.transaction(IDB_STORE,"readwrite");tx.objectStore(IDB_STORE).put(bytes,IDB_KEY);
+  tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);}));}
+function idbGet(){return idbOpen().then(d=>new Promise((res,rej)=>{
+  const tx=d.transaction(IDB_STORE,"readonly");const rq=tx.objectStore(IDB_STORE).get(IDB_KEY);
+  rq.onsuccess=()=>res(rq.result||null);rq.onerror=()=>rej(rq.error);}));}
+async function persist(){
+  try{await idbSet(db.export());}
+  catch(e){console.error(e);toast("Sauvegarde échouée",true);}
+}
+async function loadDB(){
+  try{const bytes=await idbGet();if(bytes)return new SQL.Database(new Uint8Array(bytes));}catch(e){}
+  return new SQL.Database();
+}
+function migrate(){
+  run(`CREATE TABLE IF NOT EXISTS params(k TEXT PRIMARY KEY,v TEXT)`);
+  run(`CREATE TABLE IF NOT EXISTS reservations(id INTEGER PRIMARY KEY AUTOINCREMENT,guest TEXT,channel TEXT,arrival TEXT,departure TEXT,pax INTEGER,amount REAL,tourist_tax REAL,status TEXT,notes TEXT,created_at TEXT)`);
+  run(`CREATE TABLE IF NOT EXISTS expenses(id INTEGER PRIMARY KEY AUTOINCREMENT,edate TEXT,category TEXT,description TEXT,amount REAL,created_at TEXT)`);
+  run(`CREATE TABLE IF NOT EXISTS interventions(id INTEGER PRIMARY KEY AUTOINCREMENT,idate TEXT,kind TEXT,description TEXT,provider TEXT,cost REAL,status TEXT,created_at TEXT)`);
+  run(`CREATE TABLE IF NOT EXISTS invoices(id INTEGER PRIMARY KEY AUTOINCREMENT,number TEXT,period_start TEXT,period_end TEXT,revenue REAL,expenses REAL,tourist_tax REAL,commission REAL,tva REAL,ttc REAL,created_at TEXT)`);
+  const defs={property:"Riad Timija",cur:"MAD",prefix:"TIMIJA",tva:"",taxe:"",fee:""};
+  for(const k in defs){if(getP(k)==="")setP(k,defs[k]);}
+}
+
+/* ---- Reservations ---- */
+function taxAuto(){
+  const rate=+getP("taxe")||0;const n=nights($("r_arr").value,$("r_dep").value);const pax=+$("r_pax").value||0;
+  $("r_calc").textContent=`Nuits : ${n} · taxe calculée : ${fmt(n*pax*rate)}`;
+  if(document.activeElement!==$("r_tax"))$("r_tax").value=n*pax*rate||"";
+}
+function addRes(){
+  const g=$("r_guest").value.trim();if(!g){toast("Nom d'invité requis",true);$("r_guest").focus();return;}
+  run(`INSERT INTO reservations(guest,channel,arrival,departure,pax,amount,tourist_tax,status,notes,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+    [g,$("r_channel").value,$("r_arr").value,$("r_dep").value,+$("r_pax").value||0,+$("r_amount").value||0,+$("r_tax").value||0,$("r_status").value,$("r_notes").value.trim(),new Date().toISOString()]);
+  persist();["r_guest","r_amount","r_tax","r_notes"].forEach(i=>$(i).value="");$("r_arr").value="";$("r_dep").value="";
+  renderRes();toast("Réservation ajoutée");$("r_guest").focus();
+}
+function renderRes(){
+  const rows=all("SELECT * FROM reservations ORDER BY arrival DESC,id DESC");
+  const b=$("resBody");
+  b.innerHTML=rows.length?rows.map(r=>{
+    const n=nights(r.arrival,r.departure);
+    const sc=r.status==="Annulée"?"off":r.status==="Terminée"?"ok":"warn";
+    return `<tr><td>${esc(r.guest)}${r.notes?`<div style="font-size:11px;color:var(--steel)">${esc(r.notes)}</div>`:""}</td>
+      <td><span class="pill">${esc(r.channel)}</span></td>
+      <td class="mono" style="font-size:12px">${esc(r.arrival||"—")}<br>${esc(r.departure||"—")}</td>
+      <td class="num">${n}</td><td class="num">${r.pax}</td>
+      <td class="num">${fmtInt(r.amount)}</td><td class="num">${fmtInt(r.tourist_tax)}</td>
+      <td><span class="pill ${sc}">${esc(r.status)}</span></td>
+      <td><button class="del" data-t="reservations" data-id="${r.id}">✕</button></td></tr>`;
+  }).join(""):`<tr><td colspan="9" class="empty-row">Aucune réservation. Ajoute la première ci-dessus.</td></tr>`;
+  const sum=one("SELECT COALESCE(SUM(amount),0) a,COALESCE(SUM(tourist_tax),0) t,COUNT(*) c FROM reservations WHERE status!='Annulée'");
+  $("resKpis").innerHTML=kpi(sum.c,"Réservations actives")+kpi(fmtInt(sum.a)+" MAD","Revenus cumulés")+kpi(fmtInt(sum.t)+" MAD","Taxe de séjour")+kpi(fmtInt(all("SELECT arrival FROM reservations").length),"Total enregistré");
+  bindDel();
+}
+
+/* ---- Expenses ---- */
+function addExp(){
+  const d=$("e_desc").value.trim()||$("e_cat").value;
+  run(`INSERT INTO expenses(edate,category,description,amount,created_at) VALUES(?,?,?,?,?)`,
+    [$("e_date").value||todayStr(),$("e_cat").value,d,+$("e_amount").value||0,new Date().toISOString()]);
+  persist();$("e_desc").value="";$("e_amount").value="";renderExp();toast("Dépense ajoutée");$("e_desc").focus();
+}
+function renderExp(){
+  const rows=all("SELECT * FROM expenses ORDER BY edate DESC,id DESC");
+  $("expBody").innerHTML=rows.length?rows.map(r=>`<tr>
+    <td class="mono" style="font-size:12px">${esc(r.edate)}</td><td><span class="pill">${esc(r.category)}</span></td>
+    <td>${esc(r.description)}</td><td class="num">${fmtInt(r.amount)}</td>
+    <td><button class="del" data-t="expenses" data-id="${r.id}">✕</button></td></tr>`).join("")
+    :`<tr><td colspan="5" class="empty-row">Aucune dépense.</td></tr>`;
+  const s=one("SELECT COALESCE(SUM(amount),0) a,COUNT(*) c FROM expenses");
+  $("expKpis").innerHTML=kpi(s.c,"Dépenses")+kpi(fmtInt(s.a)+" MAD","Total dépensé")+kpi(fmtInt(monthSum("expenses","edate","amount"))+" MAD","Ce mois-ci")+kpi("—","");
+  bindDel();
+}
+
+/* ---- Interventions ---- */
+function addInt(){
+  const d=$("i_desc").value.trim();if(!d){toast("Description requise",true);$("i_desc").focus();return;}
+  run(`INSERT INTO interventions(idate,kind,description,provider,cost,status,created_at) VALUES(?,?,?,?,?,?,?)`,
+    [$("i_date").value||todayStr(),$("i_kind").value,d,$("i_prov").value.trim(),+$("i_cost").value||0,$("i_status").value,new Date().toISOString()]);
+  persist();$("i_desc").value="";$("i_prov").value="";$("i_cost").value="";renderInt();toast("Intervention ajoutée");$("i_desc").focus();
+}
+function renderInt(){
+  const rows=all("SELECT * FROM interventions ORDER BY idate DESC,id DESC");
+  $("intBody").innerHTML=rows.length?rows.map(r=>`<tr>
+    <td class="mono" style="font-size:12px">${esc(r.idate)}</td><td><span class="pill">${esc(r.kind)}</span></td>
+    <td>${esc(r.description)}</td><td>${esc(r.provider||"—")}</td><td class="num">${fmtInt(r.cost)}</td>
+    <td><span class="pill ${r.status==="Fait"?"ok":"warn"}">${esc(r.status)}</span></td>
+    <td><button class="del" data-t="interventions" data-id="${r.id}">✕</button></td></tr>`).join("")
+    :`<tr><td colspan="7" class="empty-row">Aucune intervention.</td></tr>`;
+  const s=one("SELECT COALESCE(SUM(cost),0) a,COUNT(*) c FROM interventions");
+  const planif=one("SELECT COUNT(*) c FROM interventions WHERE status='Planifié'");
+  $("intKpis").innerHTML=kpi(s.c,"Interventions")+kpi(fmtInt(s.a)+" MAD","Coût cumulé")+kpi(planif.c,"Planifiées")+kpi(fmtInt(monthSum("interventions","idate","cost"))+" MAD","Ce mois-ci");
+  bindDel();
+}
+
+function monthSum(t,dcol,vcol){const m=todayStr().slice(0,7);const r=one(`SELECT COALESCE(SUM(${vcol}),0) s FROM ${t} WHERE substr(${dcol},1,7)=?`,[m]);return r.s;}
+function kpi(v,l){return `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;}
+function bindDel(){document.querySelectorAll(".del").forEach(b=>b.onclick=()=>{
+  run(`DELETE FROM ${b.dataset.t} WHERE id=?`,[+b.dataset.id]);persist();
+  renderRes();renderExp();renderInt();toast("Supprimé");});}
+
+/* ---- Settings ---- */
+const SFIELDS={s_raison:"raison",s_owner:"owner",s_ice:"ice",s_if:"if_",s_rc:"rc",s_patente:"patente",s_adresse:"adresse",s_tel:"tel",s_email:"email",s_tva:"tva",s_taxe:"taxe",s_fee:"fee",s_prefix:"prefix",s_cur:"cur"};
+function loadSettings(){for(const id in SFIELDS)$(id).value=getP(SFIELDS[id]);}
+function saveSettings(){for(const id in SFIELDS)setP(SFIELDS[id],$(id).value.trim());persist();$("s_note").textContent="Enregistré · "+new Date().toLocaleTimeString("fr-FR");toast("Paramètres enregistrés");}
+
+/* ---- Relevé ---- */
+let curPeriod=null, curStmt=null;
+function monthChips(){
+  const box=$("monthChips");box.innerHTML="";const now=new Date();
+  for(let i=0;i<8;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const y=d.getFullYear(),m=d.getMonth();
+    const label=d.toLocaleDateString("fr-FR",{month:"short",year:"2-digit"});
+    const start=`${y}-${String(m+1).padStart(2,"0")}-01`;
+    const end=new Date(y,m+1,0).toISOString().slice(0,10);
+    const b=document.createElement("button");b.className="mchip";b.textContent=label;
+    b.onclick=()=>{$("p_start").value=start;$("p_end").value=end;
+      document.querySelectorAll(".mchip").forEach(x=>x.classList.remove("active"));b.classList.add("active");calcReleve();};
+    box.appendChild(b);}
+}
+function compute(start,end){
+  const res=all("SELECT * FROM reservations WHERE status!='Annulée' AND arrival>=? AND arrival<=?",[start,end]);
+  const exp=all("SELECT * FROM expenses WHERE edate>=? AND edate<=?",[start,end]);
+  const itv=all("SELECT * FROM interventions WHERE idate>=? AND idate<=?",[start,end]);
+  const revenue=res.reduce((s,r)=>s+(+r.amount||0),0);
+  const taxe=res.reduce((s,r)=>s+(+r.tourist_tax||0),0);
+  const expTotal=exp.reduce((s,r)=>s+(+r.amount||0),0);
+  const itvTotal=itv.reduce((s,r)=>s+(+r.cost||0),0);
+  const charges=expTotal+itvTotal;
+  const fee=+getP("fee")||0, tvaRate=+getP("tva")||0;
+  const commission=revenue*fee/100;
+  const tva=commission*tvaRate/100;
+  const ttc=commission+tva;
+  const ownerNet=revenue-charges-commission;
+  const byCat={};exp.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+(+e.amount||0));
+  if(itvTotal)byCat["Ménage & maintenance"]=itvTotal;
+  return {start,end,res,revenue,taxe,expTotal,itvTotal,charges,byCat,fee,tvaRate,commission,tva,ttc,ownerNet};
+}
+function missingSetup(){
+  const need=[];if(!getP("raison"))need.push("raison sociale");if(!getP("ice"))need.push("ICE");
+  if(getP("tva")==="")need.push("taux TVA");if(getP("fee")==="")need.push("honoraires %");
+  return need;
+}
+function calcReleve(){
+  const s=$("p_start").value,e=$("p_end").value;
+  if(!s||!e){toast("Choisis une période",true);return;}
+  curPeriod={s,e};curStmt=compute(s,e);
+  const miss=missingSetup();
+  $("setupWarn").innerHTML=miss.length?`<div class="setup-warn">À compléter dans Paramètres pour un document conforme : ${miss.join(", ")}.</div>`:"";
+  renderReleve();renderFacture();
+}
+function periodLabel(s,e){return new Date(s).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})+" au "+new Date(e).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});}
+function emitBlock(){
+  return `<div class="emit"><div class="co">${esc(getP("raison")||"Raison sociale")} <b>· ${esc(getP("property")||"Riad Timija")}</b></div>
+    ${getP("adresse")?`<div class="line">${esc(getP("adresse"))}</div>`:""}
+    <div class="line">ICE ${esc(getP("ice")||"—")} · IF ${esc(getP("if_")||"—")} · RC ${esc(getP("rc")||"—")} · Patente ${esc(getP("patente")||"—")}</div>
+    ${(getP("tel")||getP("email"))?`<div class="line">${esc(getP("tel"))}${getP("tel")&&getP("email")?" · ":""}${esc(getP("email"))}</div>`:""}</div>`;
+}
+function renderReleve(){
+  const d=curStmt;if(!d){return;}
+  const cur=getP("cur")||"MAD";
+  const resRows=d.res.map(r=>`<tr><td>${esc(r.guest)} <span style="color:#999;font-size:11px">${esc(r.channel)}</span></td>
+    <td style="color:#777;font-size:12px">${esc(r.arrival)} → ${esc(r.departure)}</td><td class="r">${fmtInt(r.amount)}</td></tr>`).join("")
+    ||`<tr><td colspan="3" style="color:#999">Aucune réservation sur la période.</td></tr>`;
+  const catRows=Object.keys(d.byCat).map(c=>`<tr><td>${esc(c)}</td><td class="r">${fmtInt(d.byCat[c])}</td></tr>`).join("")
+    ||`<tr><td colspan="2" style="color:#999">Aucune charge.</td></tr>`;
+  $("paperReleve").innerHTML=`
+    <div class="phead">${emitBlock()}
+      <div class="doctitle"><div class="t">Relevé d'exploitation</div>
+        <div class="meta">Période<br>${esc(periodLabel(d.start,d.end))}</div></div></div>
+    <div class="forwho"><div class="box"><div class="k">Établi pour</div><div class="v">${esc(getP("owner")||"Propriétaire")}</div></div>
+      <div class="box" style="text-align:right"><div class="k">Bien</div><div class="v">${esc(getP("property")||"Riad Timija")}</div></div></div>
+
+    <h3 class="sec">Revenus d'hébergement</h3>
+    <table class="doc"><tbody>${resRows}</tbody></table>
+
+    <h3 class="sec">Charges d'exploitation</h3>
+    <table class="doc"><tbody>${catRows}</tbody></table>
+
+    <div class="totals">
+      <div class="row"><span class="lab">Revenus hébergement</span><span>${fmt(d.revenue,cur)}</span></div>
+      <div class="row"><span class="lab">Charges d'exploitation</span><span>− ${fmt(d.charges,cur)}</span></div>
+      <div class="row"><span class="lab">Honoraires de gestion (${d.fee}%)</span><span>− ${fmt(d.commission,cur)}</span></div>
+      <div class="row grand"><span class="lab">Net propriétaire</span><span>${fmt(d.ownerNet,cur)}</span></div>
+    </div>
+    <div class="note"><b>Taxe de séjour collectée sur la période : ${fmt(d.taxe,cur)}</b> — reversée à la commune, hors résultat d'exploitation.<br>
+    Document établi le ${new Date().toLocaleDateString("fr-FR")}. Les réservations sont rattachées au mois de leur date d'arrivée.</div>
+    <div class="sign"><div class="s"><div class="l">Le gestionnaire</div></div><div class="s"><div class="l">Le propriétaire</div></div></div>`;
+}
+function nextInvoiceNumber(){
+  const yr=new Date().getFullYear();const pre=getP("prefix")||"TIMIJA";
+  const c=one("SELECT COUNT(*) c FROM invoices WHERE number LIKE ?",[pre+"-"+yr+"-%"]);
+  return `${pre}-${yr}-${String((c.c||0)+1).padStart(4,"0")}`;
+}
+function renderFacture(existing){
+  const d=curStmt;if(!d)return;const cur=getP("cur")||"MAD";
+  const num=existing?existing.number:"(à générer)";
+  const date=existing?new Date(existing.created_at).toLocaleDateString("fr-FR"):new Date().toLocaleDateString("fr-FR");
+  $("paperFacture").innerHTML=`
+    <div class="phead">${emitBlock()}
+      <div class="doctitle"><div class="t">Facture d'honoraires</div>
+        <div class="meta">N° ${esc(num)}<br>${esc(date)}</div></div></div>
+    <div class="forwho"><div class="box"><div class="k">Facturé à</div><div class="v">${esc(getP("owner")||"Propriétaire")}</div></div>
+      <div class="box" style="text-align:right"><div class="k">Période de gestion</div><div class="v" style="font-size:12px">${esc(periodLabel(d.start,d.end))}</div></div></div>
+    <h3 class="sec">Prestation</h3>
+    <table class="doc"><tbody>
+      <tr><td>Gestion locative ${esc(getP("property")||"Riad Timija")} — honoraires ${d.fee}% sur revenus de ${fmt(d.revenue,cur)}</td><td class="r">${fmt(d.commission,cur)}</td></tr>
+    </tbody></table>
+    <div class="totals">
+      <div class="row"><span class="lab">Total HT</span><span>${fmt(d.commission,cur)}</span></div>
+      <div class="row"><span class="lab">TVA (${d.tvaRate}%)</span><span>${fmt(d.tva,cur)}</span></div>
+      <div class="row grand"><span class="lab">Total TTC</span><span>${fmt(d.ttc,cur)}</span></div>
+    </div>
+    <div class="note">Arrêtée à la somme de ${fmt(d.ttc,cur)} toutes taxes comprises.${existing?"":" Numéro attribué à la génération."}</div>
+    <div class="sign"><div class="s"><div class="l">Cachet & signature</div></div></div>`;
+}
+function genInvoice(){
+  if(!curStmt){toast("Calcule d'abord un relevé",true);return;}
+  const miss=missingSetup();if(miss.length){toast("Complète les Paramètres d'abord",true);switchTab("params");return;}
+  const d=curStmt;const num=nextInvoiceNumber();
+  run(`INSERT INTO invoices(number,period_start,period_end,revenue,expenses,tourist_tax,commission,tva,ttc,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+    [num,d.start,d.end,d.revenue,d.charges,d.taxe,d.commission,d.tva,d.ttc,new Date().toISOString()]);
+  persist();renderInvoices();
+  renderFacture({number:num,created_at:new Date().toISOString()});
+  showPaper("facture");toast("Facture "+num+" générée");
+}
+function renderInvoices(){
+  const rows=all("SELECT * FROM invoices ORDER BY id DESC");
+  $("invBody").innerHTML=rows.length?rows.map(r=>`<tr><td class="mono">${esc(r.number)}</td>
+    <td style="font-size:12px">${esc(r.period_start)} → ${esc(r.period_end)}</td>
+    <td class="num">${fmtInt(r.commission)}</td><td class="num">${fmtInt(r.tva)}</td><td class="num">${fmtInt(r.ttc)}</td>
+    <td class="mono" style="font-size:12px">${new Date(r.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("")
+    :`<tr><td colspan="6" class="empty-row">Aucune facture émise.</td></tr>`;
+}
+function showPaper(which){
+  $("paperReleve").classList.toggle("hidden",which!=="releve");
+  $("paperFacture").classList.toggle("hidden",which!=="facture");
+  $("sw_releve").classList.toggle("active",which==="releve");
+  $("sw_facture").classList.toggle("active",which==="facture");
+}
+
+/* ---- Export / import ---- */
+function exportDB(){
+  const data=db.export();const blob=new Blob([data],{type:"application/octet-stream"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");
+  a.href=url;a.download="riad-timija-"+todayStr()+".sqlite";a.click();URL.revokeObjectURL(url);
+  toast("Base exportée");
+}
+function importDB(file){
+  const rd=new FileReader();rd.onload=async()=>{
+    try{db=new SQL.Database(new Uint8Array(rd.result));migrate();await persist();
+      renderAll();toast("Base importée");}catch(e){toast("Fichier illisible",true);}
+  };rd.readAsArrayBuffer(file);
+}
+
+/* ---- Tabs ---- */
+function switchTab(v){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.v===v));
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
+}
+function renderAll(){loadSettings();renderRes();renderExp();renderInt();renderInvoices();}
+
+/* ---- Init ---- */
+(async function(){
+  try{
+    SQL=await initSqlJs({locateFile:f=>"https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/"+f});
+    db=await loadDB();migrate();await persist();
+  }catch(e){
+    console.error(e);
+    $("loading").innerHTML='<div><div class="l">Base indisponible</div><div class="s">Le moteur SQL n\'a pas pu se charger.<br>Recharge la page ; vérifie la connexion.</div></div>';
+    return;
+  }
+  // defaults on forms
+  $("e_date").value=todayStr();$("i_date").value=todayStr();
+  renderAll();monthChips();
+  // wiring
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.v));
+  ["r_arr","r_dep","r_pax"].forEach(i=>$(i).addEventListener("input",taxAuto));
+  $("r_add").onclick=addRes;
+  $("r_guest").addEventListener("keydown",e=>{if(e.key==="Enter")addRes();});
+  $("e_add").onclick=addExp;$("e_amount").addEventListener("keydown",e=>{if(e.key==="Enter")addExp();});
+  $("i_add").onclick=addInt;$("i_cost").addEventListener("keydown",e=>{if(e.key==="Enter")addInt();});
+  $("s_save").onclick=saveSettings;
+  $("p_calc").onclick=calcReleve;
+  $("sw_releve").onclick=()=>showPaper("releve");
+  $("sw_facture").onclick=()=>showPaper("facture");
+  $("genInvoice").onclick=genInvoice;
+  $("printBtn").onclick=()=>window.print();
+  $("expBtn").onclick=exportDB;
+  $("impBtn").onclick=()=>$("impFile").click();
+  $("impFile").onchange=e=>{if(e.target.files[0])importDB(e.target.files[0]);};
+  $("loading").style.display="none";
+})();
+</script>
+</body>
+</html>
