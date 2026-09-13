@@ -221,6 +221,12 @@ table.xl{width:100%;border-collapse:collapse;border:1px solid #8F8A7A}
   .xl td{font-size:9.5px;padding:3px 5px}
   .xl th{font-size:8.5px;padding:3px 5px}
   @page{margin:10mm}
+  /* Impression isolee : seul le document a imprimer existe sur la page. */
+  body.printing{min-height:0!important;background:#fff!important}
+  body.printing>*{display:none!important}
+  body.printing>#printRoot{display:block!important}
+  #printRoot{width:100%;margin:0;padding:0}
+  #printRoot .paper{display:block!important;width:100%;max-width:100%;margin:0;border:none;border-radius:0;box-shadow:none}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -440,7 +446,8 @@ let sb=null;
 const state={params:{},reservations:[],expenses:[],extras:[],invoices:[]};
 const SYM={MAD:"dh",EUR:"€"};
 const $=id=>document.getElementById(id);
-const todayStr=()=>new Date().toISOString().slice(0,10);
+const isoLocal=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const todayStr=()=>isoLocal(new Date());
 const nn=v=>(v===""||v==null)?null:v;
 function toast(m,err){const t=$("toast");t.textContent=m;t.className="show"+(err?" err":"");setTimeout(()=>t.className="",2600);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -657,7 +664,7 @@ function monthChips(){
   for(let i=0;i<10;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const y=d.getFullYear(),m=d.getMonth();
     const start=`${y}-${String(m+1).padStart(2,"0")}-01`;
-    const end=new Date(y,m+1,0).toISOString().slice(0,10);
+    const end=isoLocal(new Date(y,m+1,0));
     const b=document.createElement("button");b.className="mchip";
     b.textContent=d.toLocaleDateString("fr-FR",{month:"short",year:"2-digit"});
     b.onclick=()=>{$("p_start").value=start;$("p_end").value=end;
@@ -800,20 +807,31 @@ function showPaper(which){
   $("sw_releve").classList.toggle("active",which==="releve");
   $("sw_facture").classList.toggle("active",which==="facture");
 }
-let printEl=null,printHidden=false;
+/* Impression : on sort une copie du document dans un conteneur isole
+   (#printRoot, enfant direct de body). Le reste de l'application est masque
+   en bloc par la CSS, sans liste noire a maintenir, et le document n'est plus
+   dans un conteneur flex : plus de page blanche avant le relevé. */
 function printDoc(kind){
-  document.body.classList.add("print-"+kind);
-  const el=kind==="releve"?$("paperReleve"):kind==="facture"?$("paperFacture"):$("paperFiche");
-  printHidden=el.classList.contains("hidden");
-  if(printHidden)el.classList.remove("hidden");
-  el.classList.add("compact");
-  printEl=el;
-  setTimeout(()=>window.print(),60);
+  const src=kind==="releve"?$("paperReleve"):kind==="facture"?$("paperFacture"):$("paperFiche");
+  if(!src)return;
+  document.getElementById("printRoot")?.remove();
+  const root=document.createElement("div");
+  root.id="printRoot";
+  const clone=src.cloneNode(true);
+  clone.classList.remove("hidden");
+  clone.classList.add("compact");
+  clone.removeAttribute("id");
+  root.appendChild(clone);
+  document.body.appendChild(root);
+  document.body.classList.add("printing");
+  let done=false;
+  const cleanup=()=>{if(done)return;done=true;
+    document.body.classList.remove("printing");
+    root.remove();
+    window.removeEventListener("afterprint",cleanup);};
+  window.addEventListener("afterprint",cleanup);
+  setTimeout(()=>{window.print();setTimeout(cleanup,1500);},80);
 }
-window.addEventListener("afterprint",()=>{
-  document.body.classList.remove("print-releve","print-facture","print-fiche");
-  if(printEl){printEl.classList.remove("compact");if(printHidden)printEl.classList.add("hidden");printEl=null;}
-});
 
 /* ---- Fiche d'arrivée ---- */
 function printFiche(id){
@@ -947,8 +965,8 @@ async function syncLodgify(){
   let from=$("p_start").value,to=$("p_end").value;
   if(!from||!to){
     const n=new Date();
-    from=new Date(n.getFullYear(),n.getMonth()-2,1).toISOString().slice(0,10);
-    to=new Date(n.getFullYear(),n.getMonth()+2,0).toISOString().slice(0,10);
+    from=isoLocal(new Date(n.getFullYear(),n.getMonth()-2,1));
+    to=isoLocal(new Date(n.getFullYear(),n.getMonth()+2,0));
   }
   toast("Lecture des réservations Lodgify…");
   let data;
