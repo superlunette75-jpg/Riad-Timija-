@@ -111,7 +111,10 @@ export default async (request) => {
     for (const k of ranked) {
       const v = obj[k];
       if (typeof v === "number" || typeof v === "string") {
-        if (/(total|amount|price|gross|revenue)/i.test(k) && !/id|count|nights|guests|people|tax_rate/i.test(k)) {
+        if (
+          /(total|amount|price|gross|revenue)/i.test(k) &&
+          !/id|count|nights|guests|people|tax_rate|paid|due|refund|balance/i.test(k)
+        ) {
           const n = num(v);
           if (n) return n;
         }
@@ -150,6 +153,27 @@ export default async (request) => {
         "MAD"
     ).toUpperCase();
 
+  // Table room_type_id -> nom, construite depuis les proprietes. L'endpoint
+  // peut ne pas repondre selon le plan : dans ce cas on laisse la chambre vide.
+  const roomNames = {};
+  try {
+    const propIds = [...new Set(all.map((b) => b.property_id).filter(Boolean))];
+    for (const pid of propIds.slice(0, 5)) {
+      const r = await fetch(`https://api.lodgify.com/v2/properties/${pid}/rooms`, {
+        headers: { "X-ApiKey": key, accept: "application/json" },
+      });
+      if (!r.ok) continue;
+      const rooms = await r.json();
+      (Array.isArray(rooms) ? rooms : rooms.items || []).forEach((rt) => {
+        const id = rt.id ?? rt.room_type_id;
+        const nm = rt.name || rt.room_type_name || rt.title;
+        if (id && nm) roomNames[String(id)] = nm;
+      });
+    }
+  } catch (e) {
+    /* silencieux : le nom de chambre est un confort, pas une donnee critique */
+  }
+
   const normalize = (b) => {
     const room = (b.rooms && b.rooms[0]) || {};
     const guest = b.guest || {};
@@ -164,14 +188,21 @@ export default async (request) => {
       people,
       amount: pickAmount(b),
       currency: pickCurrency(b),
-      source: b.source_text || b.source || "Lodgify",
+      source: b.source || b.source_text || "Lodgify",
       status: b.status || "Booked",
-      room: room.name || room.room_type_name || b.property_name || "",
+      room:
+        room.name ||
+        room.room_type_name ||
+        roomNames[String(room.room_type_id)] ||
+        "",
       notes: b.notes || "",
     };
   };
 
-  let bookings = all.map(normalize).filter((b) => b.ext_id && b.arrival);
+  let bookings = all
+    .filter((b) => !b.is_deleted)
+    .map(normalize)
+    .filter((b) => b.ext_id && b.arrival);
 
   // Filtre local sur la date d'arrivée (format ISO, comparaison de chaînes)
   const total = bookings.length;
@@ -191,6 +222,7 @@ export default async (request) => {
       filtre: { from, to },
       champs_disponibles: sample ? Object.keys(sample) : [],
       montant_detecte: sample ? pickAmount(sample) : null,
+      chambres_resolues: roomNames,
       devise_detectee: sample ? pickCurrency(sample) : null,
       exemple_normalise: bookings[0] || null,
       exemple_brut: raw ? sample : "ajoute &raw=1 pour voir la réservation brute complète",
