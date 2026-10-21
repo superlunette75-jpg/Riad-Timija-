@@ -164,11 +164,50 @@ table.xl{width:100%;border-collapse:collapse;border:1px solid #8F8A7A}
 #gate .msg.err{color:var(--blood-soft)}
 #gate .cfg{text-align:left;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--steel);line-height:1.7}
 #gate .cfg code{color:var(--gold-bright)}
+/* ---- analyses ---- */
+:root{--c1:#A47A0C;--c2:#2E63CC}
+body.dark{--c1:#B78A20;--c2:#5A8EEE}
+.dash-ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.dash-ctl .field{min-width:150px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.dgrid>.card{margin-bottom:0;min-width:0}
+.chart{position:relative;width:100%}
+.chart svg{display:block;max-width:100%;height:auto}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .ax0{stroke:var(--line2);stroke-width:1}
+.chart .tk{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--steel)}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .ln.dash{stroke-dasharray:5 4}
+.chart .split{stroke:var(--line2);stroke-dasharray:3 3}
+.chart .xh{stroke:var(--steel);stroke-width:1;opacity:.5}
+.chart .mk{stroke:var(--panel);stroke-width:2}
+.ctip{position:absolute;pointer-events:none;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--bone);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.12);display:none;z-index:5}
+.ctip b{display:block;margin-bottom:3px;font-size:11px}
+.ctip .r{display:flex;align-items:center;gap:14px;justify-content:space-between}
+.ctip .r i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+.lg{display:flex;gap:14px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--steel);margin:-4px 0 8px}
+.lg i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.lg i.dsh{background:repeating-linear-gradient(90deg,var(--steel) 0 4px,transparent 4px 7px)}
+.lg i.sq{height:9px;width:9px}
+.hbar{display:grid;grid-template-columns:minmax(90px,1.1fr) 2fr auto;gap:8px;align-items:center;font-size:12px;padding:5px 0}
+.hbar .t{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.hbar .t span{display:block;height:100%;border-radius:0 4px 4px 0}
+.hbar .v{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bone);text-align:right;white-space:nowrap}
+.hbar .v small{color:var(--steel)}
+.kpi .s{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--steel);margin-top:2px}
+.rplan{display:flex;gap:6px;white-space:nowrap;flex-wrap:wrap;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--steel)}
+.rplan input{background:var(--ink);border:1px solid var(--line);border-radius:6px;color:var(--bone);padding:6px 7px;font-size:12.5px}
+.rplan input[type=number]{width:62px;font-family:"IBM Plex Mono",monospace}
+.rplan input[type=month]{color-scheme:light dark}
+.rplan button{background:none;border:none;color:var(--blood-soft);font-size:12px;padding:0 3px}
+.dnote{font-size:11.5px;color:var(--steel);line-height:1.6}
+.app-t tr.fc td{color:var(--steel)}
 /* ---- mobile ---- */
 @media(max-width:760px){
   .kpis{grid-template-columns:1fr 1fr}
   .fg-res1,.fg-res2,.fg-exp{grid-template-columns:1fr 1fr}
   .settings-grid{grid-template-columns:1fr}
+  .dgrid{grid-template-columns:1fr}
   .csvbar{margin-left:0;width:100%}
   .paper{padding:20px 16px}
   .card h2{font-size:15.5px}
@@ -259,6 +298,7 @@ table.xl{width:100%;border-collapse:collapse;border:1px solid #8F8A7A}
     <button class="tab active" data-v="reservations">Réservations</button>
     <button class="tab" data-v="depenses">Dépenses</button>
     <button class="tab" data-v="releve">Relevé</button>
+    <button class="tab" data-v="analyses">Analyses</button>
     <button class="tab" data-v="params">Paramètres</button>
   </div>
 
@@ -358,6 +398,49 @@ table.xl{width:100%;border-collapse:collapse;border:1px solid #8F8A7A}
     </div>
     <div class="paper-shell"><div class="paper" id="paperReleve">Choisis une période puis « Calculer ».</div>
     <div class="paper hidden" id="paperFacture"></div></div>
+  </section>
+
+  <!-- ===== ANALYSES ===== -->
+  <section class="view" id="v-analyses">
+    <div class="card">
+      <h2><span class="n">A</span>Tableau de bord &amp; prévisions</h2>
+      <div class="dash-ctl">
+        <div class="field"><label>Devise d'analyse</label><select id="d_cur"><option value="ALL">Tout converti en dh</option><option value="ALL_EUR">Tout converti en €</option><option value="MAD">dh uniquement</option><option value="EUR">€ uniquement</option></select></div>
+        <div class="field"><label>Taux de change</label><select id="d_fxmode"><option value="live">Taux du jour (en ligne)</option><option value="hist">Taux historique de chaque mois</option><option value="manual">Taux manuel</option></select></div>
+        <div class="field"><label>Taux manuel 1 € = … dh</label><input type="number" id="d_fx" min="0" step="0.01"></div>
+        <div class="field"><label>Horizon de prévision</label><select id="d_h"><option value="3">3 mois</option><option value="6" selected>6 mois</option><option value="12">12 mois</option></select></div>
+      </div>
+      <div class="field" style="margin-top:10px"><label>Nombre de chambres (historique)</label>
+        <div class="dash-ctl" id="d_roomplan"></div></div>
+      <div class="dash-ctl" style="margin-top:10px">
+        <div class="field"><label>Convertisseur €</label><input type="number" id="c_eur" min="0" step="any" placeholder="€"></div>
+        <div class="field"><label>= dh</label><input type="number" id="c_mad" min="0" step="any" placeholder="dh"></div>
+        <div class="field"><button class="tbtn" id="d_fxref" style="height:40px">Actualiser le taux</button></div>
+      </div>
+      <div class="hint" id="d_fxinfo"></div>
+      <div class="hint" id="d_hint"></div>
+    </div>
+    <div class="kpis" id="dashKpis"></div>
+    <div class="card">
+      <h2>Recettes &amp; dépenses par mois <span class="hint" style="margin:0" id="d_sub1">12 mois réels + 6 mois de prévision</span></h2>
+      <div class="lg" id="lg1"></div>
+      <div class="chart" id="ch1"></div>
+    </div>
+    <div class="dgrid">
+      <div class="card"><h2>Résultat net cumulé</h2><div class="lg" id="lg2"></div><div class="chart" id="ch2"></div></div>
+      <div class="card"><h2>Taux d'occupation</h2><div class="lg" id="lg3"></div><div class="chart" id="ch3"></div></div>
+    </div>
+    <div class="dgrid">
+      <div class="card"><h2>Recettes par canal <span class="hint" style="margin:0">12 mois</span></h2><div id="d_chan"></div></div>
+      <div class="card"><h2>Dépenses par catégorie <span class="hint" style="margin:0">12 mois</span></h2><div id="d_cat"></div></div>
+    </div>
+    <div class="tablewrap" style="margin-bottom:18px">
+      <table class="app-t" style="min-width:680px">
+        <thead><tr><th>Mois</th><th>Statut</th><th class="num">Recettes</th><th class="num">Dont réservé</th><th class="num">Dépenses</th><th class="num">Net</th><th class="num">Nuits</th><th class="num">Occupation</th></tr></thead>
+        <tbody id="dashBody"></tbody>
+      </table>
+    </div>
+    <div class="card"><h2>Méthode de calcul</h2><div class="dnote" id="d_method"></div></div>
   </section>
 
   <!-- ===== PARAMETRES ===== -->
@@ -1098,6 +1181,308 @@ function pdfDoc(){
   });
 }
 
+/* ---- Analyses & prévisions ---- */
+const DASH_HIST=12;let DASH_FC=6;
+const monthKey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+function addMonths(k,n){const[y,m]=k.split("-").map(Number);return monthKey(new Date(y,m-1+n,1));}
+function daysIn(k){const[y,m]=k.split("-").map(Number);return new Date(y,m,0).getDate();}
+function monthLabel(k,long){const[y,m]=k.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("fr-FR",long?{month:"long",year:"numeric"}:{month:"short",year:"2-digit"});}
+function dashCur(){return $("d_cur").value||"ALL";}
+/* Taux EUR→MAD en ligne : ExchangeRate-API (open.er-api.com), secours
+   fawazahmed0/currency-api (jsDelivr). Sources gratuites, mises à jour une fois par jour.
+   Taux historiques : même source jsDelivr, cours du 15 de chaque mois. */
+const FX={live:null,src:"",at:"",hist:{},busy:false};
+function fxCache(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json();}
+async function fetchLiveFx(force){
+  const c=fxCache("riad_fx");
+  if(!force&&c&&Date.now()-c.t<3600e3){FX.live=c.r;FX.src=c.s;FX.at=c.a;return;}
+  const tries=[
+    async()=>{const j=await getJSON("https://open.er-api.com/v6/latest/EUR");if(!(j.rates&&j.rates.MAD))throw 0;
+      return{r:j.rates.MAD,s:"ExchangeRate-API",a:new Date(j.time_last_update_unix*1000).toLocaleString("fr-FR")};},
+    async()=>{const j=await getJSON("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json");if(!(j.eur&&j.eur.mad))throw 0;
+      return{r:j.eur.mad,s:"currency-api (jsDelivr)",a:frd(j.date)};}];
+  for(const t of tries){try{const x=await t();FX.live=x.r;FX.src=x.s;FX.at=x.a;fxCache("riad_fx",{...x,t:Date.now()});return;}catch(e){}}
+}
+async function fetchHistFx(keys){
+  const saved=fxCache("riad_fx_hist")||{};Object.assign(FX.hist,saved);
+  const today=todayStr();
+  const todo=keys.filter(k=>FX.hist[k]==null&&k+"-15"<today);
+  await Promise.all(todo.map(async k=>{
+    const d=k+"-15";
+    for(const u of[`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d}/v1/currencies/eur.json`,`https://${d}.currency-api.pages.dev/v1/currencies/eur.json`]){
+      try{const j=await getJSON(u);if(j.eur&&j.eur.mad){FX.hist[k]=j.eur.mad;return;}}catch(e){}
+    }
+  }));
+  const keep={};for(const k in FX.hist)if(FX.hist[k])keep[k]=FX.hist[k];fxCache("riad_fx_hist",keep);
+}
+function fxMode(){return $("d_fxmode").value||"live";}
+function fxManual(){return +getP("fx_eur")||10.8;}
+function fxRate(k){const m=fxMode();
+  if(m==="manual")return fxManual();
+  if(m==="hist"&&k&&FX.hist[k])return FX.hist[k];
+  return FX.live||fxManual();}
+function dv(amt,cur,k){amt=+amt||0;cur=cur==="EUR"?"EUR":"MAD";const v=dashCur();
+  if(v==="ALL")return cur==="EUR"?amt*fxRate(k):amt;
+  if(v==="ALL_EUR")return cur==="MAD"?amt/fxRate(k):amt;
+  return cur===v?amt:0;}
+async function refreshFx(force){
+  if(FX.busy)return;FX.busy=true;
+  try{
+    await fetchLiveFx(force);
+    if(fxMode()==="hist"){const ks=[];const cur=monthKey(new Date());for(let i=1;i<=DASH_HIST+12;i++)ks.push(addMonths(cur,-i));await fetchHistFx(ks);}
+  }finally{FX.busy=false;}
+  renderDash(true);
+}
+function convFrom(which){const r=FX.live||fxManual();
+  if(which==="eur")$("c_mad").value=$("c_eur").value===""?"":(+$("c_eur").value*r).toFixed(2);
+  else $("c_eur").value=$("c_mad").value===""?"":(+$("c_mad").value/r).toFixed(2);}
+function fmtD(v){return Math.round(+v||0).toLocaleString("fr-FR")+" "+(dashCur()==="EUR"||dashCur()==="ALL_EUR"?"€":"dh");}
+const fmtPct=v=>(v==null||!isFinite(v))?"—":(v*100).toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
+/* Nombre de chambres dans le temps : [{from:"",n:5},{from:"2026-10",n:6}]
+   ("" = depuis le début). Repli : ancien réglage unique, puis chambres détectées. */
+function roomPlan(){
+  let plan=null;try{plan=JSON.parse(getP("rooms_plan")||"null");}catch(e){}
+  if(!Array.isArray(plan)||!plan.length){const p=+getP("rooms");plan=[{from:"",n:p>0?p:0}];}
+  const base=plan.find(x=>!x.from)||{from:"",n:0};
+  return[{from:"",n:+base.n||0},...plan.filter(x=>x.from).map(x=>({from:String(x.from).slice(0,7),n:+x.n||0})).sort((a,b)=>a.from<b.from?-1:1)];
+}
+function roomCount(){
+  const plan=roomPlan();
+  if(plan.some(x=>x.n>0))return{plan,auto:false,at:k=>{let n=0;plan.forEach(x=>{if(!x.from||k>=x.from)n=x.n;});return n;}};
+  const set=new Set(state.reservations.map(r=>String(r.room||"").trim().toLowerCase()).filter(Boolean));
+  return{plan,auto:true,at:()=>set.size};
+}
+async function saveRoomPlan(plan){await setP("rooms_plan",JSON.stringify(plan));renderRoomPlan();renderDash();}
+function renderRoomPlan(){
+  const plan=roomPlan();
+  $("d_roomplan").innerHTML=plan.map((x,i)=>`<span class="rplan">${i?`à partir de <input type="month" data-rp="from" data-i="${i}" value="${esc(x.from)}">`:"au départ"}
+    <input type="number" min="0" step="1" data-rp="n" data-i="${i}" value="${x.n||""}" placeholder="0"> ch.
+    ${i?`<button data-rp="del" data-i="${i}" title="Supprimer">✕</button>`:""}</span>`).join("")
+    +`<button class="tbtn" id="d_rpadd">＋ Changement</button>`;
+  $("d_roomplan").querySelectorAll("input").forEach(el=>el.onchange=()=>{
+    const p=roomPlan(),i=+el.dataset.i;
+    if(el.dataset.rp==="n")p[i].n=Math.max(0,Math.round(+el.value||0));else p[i].from=el.value;
+    saveRoomPlan(p.filter((x,j)=>!j||x.from));});
+  $("d_roomplan").querySelectorAll("button[data-rp=del]").forEach(b=>b.onclick=()=>{const p=roomPlan();p.splice(+b.dataset.i,1);saveRoomPlan(p);});
+  $("d_rpadd").onclick=()=>{const p=roomPlan();const last=p[p.length-1];
+    p.push({from:monthKey(new Date()),n:last.n||0});saveRoomPlan(p);};
+}
+/* Agrégats mensuels, mêmes règles que le relevé : séjour rattaché au mois d'arrivée,
+   extras et dépenses à leur date, réservations annulées exclues.
+   Les nuits (occupation) sont réparties sur les mois réellement occupés. */
+function dashAgg(){
+  const agg={};const g=k=>agg[k]||(agg[k]={rev:0,ext:0,dep:0,nights:0,stays:0,stayN:0,cancel:0,chan:{},cat:{}});
+  const live=r=>effStatus(r)!=="Annulée";
+  const byId={};state.reservations.forEach(r=>byId[r.id]=r);
+  state.reservations.forEach(r=>{
+    if(!r.arrival)return;
+    const o=g(String(r.arrival).slice(0,7));
+    if(!live(r)){o.cancel++;return;}
+    const v=dv(r.amount,r.currency,String(r.arrival).slice(0,7));o.rev+=v;o.stays++;
+    const ch=r.channel||"Autre";o.chan[ch]=o.chan[ch]||{v:0,c:0};o.chan[ch].v+=v;o.chan[ch].c++;
+    const n=nights(r.arrival,r.departure);o.stayN+=n;
+    const d=new Date(String(r.arrival).slice(0,10)+"T00:00:00");
+    for(let i=0;i<n&&i<370;i++){g(monthKey(d)).nights++;d.setDate(d.getDate()+1);}
+  });
+  state.extras.forEach(x=>{const r=byId[x.reservation_id];if((r&&!live(r))||!x.edate)return;const xk=String(x.edate).slice(0,7);g(xk).ext+=dv(x.amount,x.currency,xk);});
+  state.expenses.forEach(e=>{if(!e.edate)return;const ek=String(e.edate).slice(0,7);const o=g(ek);const v=dv(e.amount,e.currency,ek);o.dep+=v;
+    const c=e.category||"Autre";o.cat[c]=(o.cat[c]||0)+v;});
+  return agg;
+}
+/* Prévision : tendance linéaire (moindres carrés) sur les mois clos des 12 derniers mois,
+   mélangée à 50/50 avec le même mois de l'an dernier (corrigé de la croissance annuelle)
+   quand il existe. Incertitude = écart-type des résidus. */
+function dashForecast(agg,val,curK,firstK){
+  const v=k=>agg[k]?val(agg[k]):0;
+  const fit=[];for(let i=DASH_HIST-1;i>=1;i--){const k=addMonths(curK,-i);if(firstK&&k>=firstK)fit.push(v(k));}
+  const n=fit.length;let a=0,b=0,sd=0;
+  if(n>=3){
+    let sx=0,sy=0,sxx=0,sxy=0;fit.forEach((y,x)=>{sx+=x;sy+=y;sxx+=x*x;sxy+=x*y;});
+    b=(n*sxy-sx*sy)/(n*sxx-sx*sx);a=(sy-b*sx)/n;
+    sd=Math.sqrt(fit.reduce((s,y,x)=>s+(y-(a+b*x))**2,0)/(n-2||1));
+  }else if(n){a=fit.reduce((s,y)=>s+y,0)/n;sd=a*.3;}
+  const cap=n?Math.max(...fit)*1.5:0;
+  let sA=0,sB=0;for(let i=1;i<=12;i++){sA+=v(addMonths(curK,-i));sB+=v(addMonths(curK,-i-12));}
+  const growth=sB>0?Math.min(2,Math.max(.5,sA/sB)):1;
+  const out={};let seasonal=false;
+  for(let j=0;j<=DASH_FC;j++){
+    const k=addMonths(curK,j);
+    let t=n>=3?a+b*(n+j):a;
+    if(cap)t=Math.min(t,cap);
+    const ly=addMonths(k,-12);
+    if(firstK&&ly>=firstK&&agg[ly]){t=.5*t+.5*v(ly)*growth;seasonal=true;}
+    out[k]=Math.max(0,t);
+  }
+  return{vals:out,sd,growth,n,slope:b,seasonal};
+}
+function dashData(){
+  const agg=dashAgg();
+  const curK=monthKey(new Date());
+  const keys=Object.keys(agg).sort();
+  const firstK=keys.find(k=>{const o=agg[k];return o.rev||o.ext||o.dep||o.nights;})||null;
+  const months=[];for(let i=-(DASH_HIST-1);i<=DASH_FC;i++)months.push(addMonths(curK,i));
+  const fR=dashForecast(agg,o=>o.rev+o.ext,curK,firstK);
+  const fD=dashForecast(agg,o=>o.dep,curK,firstK);
+  const rc=roomCount();
+  const rows=months.map(k=>{
+    const o=agg[k]||{rev:0,ext:0,dep:0,nights:0,stays:0,stayN:0,cancel:0,chan:{},cat:{}};
+    const st=k<curK?"Réel":k===curK?"En cours":"Prévision";
+    const booked=o.rev+o.ext;
+    const row={k,st,o,rev:booked,dep:o.dep,booked,nights:o.nights,
+      rooms:rc.at(k),occ:rc.at(k)?o.nights/(rc.at(k)*daysIn(k)):null};
+    if(k>=curK){
+      row.eRev=Math.max(fR.vals[k],booked);
+      row.eDep=Math.max(fD.vals[k],o.dep);
+      row.lo=Math.max(booked,row.eRev-fR.sd);row.hi=row.eRev+fR.sd;
+    }
+    row.net=(k>=curK?row.eRev-row.eDep:row.rev-row.dep);
+    return row;
+  });
+  return{agg,curK,firstK,months,rows,fR,fD,rc,iCur:DASH_HIST-1};
+}
+function niceStep(range,n){const raw=(range||1)/n;const p=Math.pow(10,Math.floor(Math.log10(raw)));const f=raw/p;return(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;}
+function fmtAx(v,unit){if(unit==="%")return Math.round(v*100)+"%";const a=Math.abs(v);
+  return a>=1e6?(v/1e6).toLocaleString("fr-FR",{maximumFractionDigits:1})+"M":a>=1e3?(v/1e3).toLocaleString("fr-FR",{maximumFractionDigits:1})+"k":String(Math.round(v));}
+/* Graphique SVG : lignes (pleines/pointillées), barres, bande d'incertitude, survol. */
+function svgChart(host,cfg){
+  const W=Math.max(280,Math.floor(host.clientWidth||600)),H=cfg.h||240,pl=44,pr=10,pt=12,pb=26;
+  const n=cfg.labels.length,iw=W-pl-pr,ih=H-pt-pb,bw=iw/n;
+  const all=[];
+  cfg.series.forEach(s=>s.vals.forEach(v=>v!=null&&all.push(v)));
+  (cfg.bars||[]).forEach(b=>b.vals.forEach(v=>v!=null&&all.push(v)));
+  if(cfg.band)cfg.band.hi.forEach(v=>v!=null&&all.push(v));
+  let lo=Math.min(0,...all),hi=Math.max(cfg.unit==="%"?.1:1,...all);
+  const step=niceStep(hi-lo,4);lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step-1e-9)*step;
+  const X=i=>pl+bw*(i+.5),Y=v=>pt+ih-(v-lo)/(hi-lo)*ih;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(cfg.title||"")}">`;
+  const ticks=Math.round((hi-lo)/step);
+  for(let t=0;t<=ticks;t++){const v=lo+t*step,y=Y(v).toFixed(1);
+    s+=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" class="${Math.abs(v)<1e-9?"ax0":"grid"}"/><text x="${pl-6}" y="${(+y+3).toFixed(1)}" class="tk" text-anchor="end">${fmtAx(v,cfg.unit)}</text>`;}
+  const every=Math.max(1,Math.ceil(n/(iw/46)));
+  cfg.labels.forEach((l,i)=>{if(i%every===0)s+=`<text x="${X(i).toFixed(1)}" y="${H-8}" class="tk" text-anchor="middle">${esc(l)}</text>`;});
+  if(cfg.split!=null){const x=(pl+bw*cfg.split).toFixed(1);
+    s+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${pt+ih}" class="split"/><text x="${(+x+4).toFixed(1)}" y="${pt+9}" class="tk">prévision →</text>`;}
+  (cfg.bars||[]).forEach(b=>b.vals.forEach((v,i)=>{if(v==null||!v)return;
+    const y0=Y(0),y1=Y(v),w=Math.max(3,Math.min(26,bw*.56));
+    s+=`<rect x="${(X(i)-w/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(1,Math.abs(y0-y1)).toFixed(1)}" rx="2" style="fill:${b.color};opacity:${b.op||1}"/>`;}));
+  if(cfg.band){const up=[],dn=[];cfg.band.hi.forEach((v,i)=>{if(v!=null&&cfg.band.lo[i]!=null){up.push(X(i).toFixed(1)+","+Y(v).toFixed(1));dn.unshift(X(i).toFixed(1)+","+Y(cfg.band.lo[i]).toFixed(1));}});
+    if(up.length>1)s+=`<polygon points="${up.concat(dn).join(" ")}" style="fill:${cfg.band.color};opacity:.13"/>`;}
+  cfg.series.forEach(se=>{let d="",pen=false;se.vals.forEach((v,i)=>{if(v==null){pen=false;return;}d+=(pen?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1);pen=true;});
+    if(d)s+=`<path d="${d}" class="ln${se.dash?" dash":""}" style="stroke:${se.color}"/>`;});
+  s+=`<line class="xh" x1="0" x2="0" y1="${pt}" y2="${pt+ih}" style="display:none"/><g class="hov"></g></svg><div class="ctip"></div>`;
+  host.innerHTML=s;
+  const svg=host.querySelector("svg"),tip=host.querySelector(".ctip"),xh=svg.querySelector(".xh"),hov=svg.querySelector(".hov");
+  const fmt=cfg.fmt||fmtD;
+  const hide=()=>{tip.style.display="none";xh.style.display="none";hov.innerHTML="";};
+  const row=(name,color,val)=>`<div class="r"><span><i style="background:${color}"></i>${esc(name)}</span><span>${fmt(val)}</span></div>`;
+  const move=e=>{
+    const r=svg.getBoundingClientRect(),sx=W/r.width,x=(e.clientX-r.left)*sx;
+    const i=Math.floor((x-pl)/bw);if(i<0||i>=n){hide();return;}
+    const cx=X(i);xh.setAttribute("x1",cx);xh.setAttribute("x2",cx);xh.style.display="";
+    let rows="",dots="";const seen={};
+    cfg.series.forEach(se=>{const v=se.vals[i];if(v==null)return;const gk=se.group||se.name;if(seen[gk])return;seen[gk]=1;
+      rows+=row(se.name,se.color,v);dots+=`<circle cx="${cx.toFixed(1)}" cy="${Y(v).toFixed(1)}" r="4.5" class="mk" style="fill:${se.color}"/>`;});
+    (cfg.bars||[]).forEach(b=>{const v=b.vals[i];if(v!=null)rows+=row(b.name,b.color,v);});
+    if(cfg.band&&cfg.band.lo[i]!=null)rows+=`<div class="r"><span>Fourchette</span><span>${fmt(cfg.band.lo[i])} – ${fmt(cfg.band.hi[i])}</span></div>`;
+    hov.innerHTML=dots;
+    tip.innerHTML=`<b>${esc((cfg.tipLabels||cfg.labels)[i])}</b>${rows||'<div class="r">Aucune donnée</div>'}`;
+    tip.style.display="block";
+    const px=cx/sx,tw=tip.offsetWidth;let left=px+14;if(left+tw>r.width)left=px-tw-14;
+    tip.style.left=Math.max(0,left)+"px";tip.style.top="6px";
+  };
+  svg.addEventListener("pointermove",move);svg.addEventListener("pointerdown",move);svg.addEventListener("pointerleave",hide);
+}
+function legend(items){return items.map(it=>`<span><i class="${it.cls||""}" style="${it.color?"background:"+it.color+";":""}${it.op?"opacity:"+it.op:""}"></i>${esc(it.name)}</span>`).join("");}
+function hbars(list,color){
+  if(!list.length)return`<div class="dnote">Aucune donnée sur les 12 derniers mois.</div>`;
+  const tot=list.reduce((s,x)=>s+x.v,0)||1,max=Math.max(...list.map(x=>x.v))||1;
+  return list.map(x=>`<div class="hbar"><span>${esc(x.name)}</span><div class="t"><span style="width:${(x.v/max*100).toFixed(1)}%;background:${color}"></span></div>
+    <span class="v">${fmtD(x.v)} <small>${Math.round(x.v/tot*100)}%${x.c!=null?" · "+x.c+" rés.":""}</small></span></div>`).join("");
+}
+function kpiS(v,l,sub){return `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div>${sub?`<div class="s">${sub}</div>`:""}</div>`;}
+function renderDash(fromFx){
+  if(!$("v-analyses").classList.contains("active"))return;
+  if(!fromFx)refreshFx(false);
+  DASH_FC=+$("d_h").value||6;
+  if(!$("d_roomplan").contains(document.activeElement))renderRoomPlan();
+  $("d_sub1").textContent=`12 mois réels + ${DASH_FC} mois de prévision`;
+  $("d_fx").value=getP("fx_eur")||"10.8";
+  const D=dashData(),R=D.rows,iC=D.iCur;
+  const C1="var(--c1)",C2="var(--c2)";
+  const hist=R.slice(0,iC+1),fut=R.slice(iC+1);
+  /* KPI : 12 mois glissants (mois en cours inclus) */
+  const sum=(arr,f)=>arr.reduce((s,x)=>s+f(x),0);
+  const rev=sum(hist,x=>x.rev),dep=sum(hist,x=>x.dep),net=rev-dep;
+  const nightsW=sum(hist,x=>x.nights),stays=sum(hist,x=>x.o.stays),stayN=sum(hist,x=>x.o.stayN),resRev=sum(hist,x=>x.o.rev);
+  const cancel=sum(hist,x=>x.o.cancel),cap=sum(hist,x=>x.rooms*daysIn(x.k));
+  const occ=cap?nightsW/cap:null;
+  const rN=[...new Set(hist.map(x=>x.rooms))],rTxt=rN.join("→")+" ch."+(D.rc.auto?" (détecté)":"");
+  const fRev=sum(fut,x=>x.eRev),fNet=sum(fut,x=>x.net),fBooked=sum(fut,x=>x.booked);
+  const prevYear=(()=>{let s=0;for(let i=0;i<DASH_HIST;i++){const o=D.agg[addMonths(D.curK,-i-12)];if(o)s+=o.rev+o.ext;}return s;})();
+  $("dashKpis").innerHTML=
+    kpiS(fmtD(rev),"Recettes 12 mois",prevYear?(rev>=prevYear?"▲ ":"▼ ")+fmtPct(rev/prevYear-1)+" vs an −1":"séjours + extras")+
+    kpiS(fmtD(dep),"Dépenses 12 mois",rev?fmtPct(dep/rev)+" des recettes":"")+
+    kpiS(fmtD(net),"Résultat net 12 mois",rev?"marge "+fmtPct(net/rev):"")+
+    kpiS(fmtPct(occ),"Taux d'occupation",nightsW+" nuits / "+cap+" dispo · "+(cap?rTxt:"chambres ?"))+
+    kpiS(stayN?fmtD(resRev/stayN):"—","Prix moyen / nuit",cap?"RevPAR "+fmtD(resRev/cap):"")+
+    kpiS(stays?(stayN/stays).toLocaleString("fr-FR",{maximumFractionDigits:1})+" n.":"—","Durée moyenne séjour",stays?stays+" séjours · panier "+fmtD(resRev/stays):"")+
+    kpiS(fmtD(fRev),`Recettes prévues ${DASH_FC} mois`,fmtD(fBooked)+" déjà réservés")+
+    kpiS(fmtD(fNet),`Net prévu ${DASH_FC} mois`,(stays+cancel)?"annulation "+fmtPct(cancel/(stays+cancel)):"");
+  const labels=R.map(x=>monthLabel(x.k)),tipLabels=R.map(x=>monthLabel(x.k,true)+" · "+x.st.toLowerCase());
+  const real=f=>R.map((x,i)=>i<iC?f(x):null);
+  const fc=f=>R.map((x,i)=>i===iC-1?(iC>0?f(x):null):i>=iC?f(x):null);
+  /* 1 · recettes / dépenses */
+  $("lg1").innerHTML=legend([{name:"Recettes",color:C1},{name:"Dépenses",color:C2},{name:"Prévision",cls:"dsh"},{name:"Déjà réservé",cls:"sq",color:C1,op:.35},{name:"Fourchette ±1σ",cls:"sq",color:C1,op:.15}]);
+  svgChart($("ch1"),{title:"Recettes et dépenses par mois",labels,tipLabels,split:iC,
+    series:[{name:"Recettes",group:"r",color:C1,vals:real(x=>x.rev)},{name:"Recettes prévues",group:"r",color:C1,dash:true,vals:fc(x=>x.eRev!=null?x.eRev:x.rev)},
+            {name:"Dépenses",group:"d",color:C2,vals:real(x=>x.dep)},{name:"Dépenses prévues",group:"d",color:C2,dash:true,vals:fc(x=>x.eDep!=null?x.eDep:x.dep)}],
+    bars:[{name:"Déjà réservé",color:C1,op:.35,vals:R.map((x,i)=>i>=iC?x.booked:null)}],
+    band:{color:C1,lo:R.map((x,i)=>i>=iC?x.lo:null),hi:R.map((x,i)=>i>=iC?x.hi:null)}});
+  /* 2 · net cumulé */
+  let c=0;const cum=R.map(x=>c+=x.net);
+  $("lg2").innerHTML=legend([{name:"Réel",color:C1},{name:"Prévision",cls:"dsh"}]);
+  svgChart($("ch2"),{title:"Résultat net cumulé",labels,tipLabels,split:iC,h:220,
+    series:[{name:"Net cumulé",group:"n",color:C1,vals:cum.map((v,i)=>i<iC?v:null)},{name:"Net cumulé prévu",group:"n",color:C1,dash:true,vals:cum.map((v,i)=>i>=iC-1&&iC>0||i>=iC?v:null)}]});
+  /* 3 · occupation */
+  if(R.some(x=>x.rooms)){
+    $("lg3").innerHTML=legend([{name:"Réel",cls:"sq",color:C1},{name:"Réservé (à venir)",cls:"sq",color:C1,op:.4}]);
+    svgChart($("ch3"),{title:"Taux d'occupation mensuel",labels,tipLabels,split:iC,h:220,unit:"%",fmt:fmtPct,series:[],
+      bars:[{name:"Occupation",color:C1,vals:R.map((x,i)=>i<iC?x.occ:null)},{name:"Occupation réservée",color:C1,op:.4,vals:R.map((x,i)=>i>=iC?x.occ:null)}]});
+  }else{$("lg3").innerHTML="";$("ch3").innerHTML=`<div class="dnote">Renseigne le nombre de chambres ci-dessus pour calculer l'occupation.</div>`;}
+  /* répartitions */
+  const chan={},cat={};hist.forEach(x=>{for(const k in x.o.chan){chan[k]=chan[k]||{v:0,c:0};chan[k].v+=x.o.chan[k].v;chan[k].c+=x.o.chan[k].c;}for(const k in x.o.cat)cat[k]=(cat[k]||0)+x.o.cat[k];});
+  $("d_chan").innerHTML=hbars(Object.entries(chan).map(([name,o])=>({name,v:o.v,c:o.c})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v),C1);
+  $("d_cat").innerHTML=hbars(Object.entries(cat).map(([name,v])=>({name,v})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v),C2);
+  /* tableau mensuel */
+  $("dashBody").innerHTML=R.slice().reverse().map(x=>{
+    const f=x.st!=="Réel";const sc=x.st==="Réel"?"ok":x.st==="En cours"?"blue":"warn";
+    const rv=f?x.eRev:x.rev,dp=f?x.eDep:x.dep;
+    return `<tr class="${x.st==="Prévision"?"fc":""}"><td>${monthLabel(x.k,true)}</td><td><span class="pill ${sc}">${x.st}</span></td>
+      <td class="num">${fmtD(rv)}${f?`<div style="font-size:9.5px;color:var(--steel)">± ${fmtD(D.fR.sd)}</div>`:""}</td>
+      <td class="num">${f?fmtD(x.booked):"—"}</td><td class="num">${fmtD(dp)}</td>
+      <td class="num" style="color:${x.net<0?"var(--blood-soft)":"inherit"}">${fmtD(x.net)}</td>
+      <td class="num">${x.nights||""}</td><td class="num">${fmtPct(x.occ)}<div style="font-size:9.5px;color:var(--steel)">${x.rooms||"?"} ch.</div></td></tr>`;}).join("");
+  /* méthode */
+  const cv=dashCur();
+  const fm=fxMode(),live=FX.live?FX.live.toLocaleString("fr-FR",{maximumFractionDigits:4}):null;
+  const nh=Object.keys(FX.hist).length;
+  const toW=cv==="ALL_EUR"?"Montants en dh convertis en €":"Montants en € convertis en dh";
+  $("d_hint").textContent=cv!=="ALL"&&cv!=="ALL_EUR"?`Seuls les montants en ${cv==="EUR"?"euros":"dirhams"} sont pris en compte.`
+    :fm==="manual"?`${toW} au taux manuel 1 € = ${fxManual()} dh (analyse uniquement, le relevé reste sans conversion).`
+    :fm==="hist"?`${toW} au cours du 15 de chaque mois (${nh} mois chargés) ; mois futurs et manquants au taux du jour. Le relevé reste sans conversion.`
+    :`${toW} au taux du jour (analyse uniquement, le relevé reste sans conversion).`;
+  $("d_fxinfo").textContent=live?`Taux en ligne : 1 € = ${live} dh · source ${FX.src} · mise à jour ${FX.at} (cours actualisé une fois par jour)`
+    :(FX.busy?"Lecture du taux en ligne…":`Taux en ligne indisponible — taux manuel utilisé (1 € = ${fxManual()} dh).`);
+  if($("c_eur").value!=="")convFrom("eur");
+  const tr=D.fR.slope;
+  $("d_method").innerHTML=`<b>Recettes</b> = séjours (rattachés au mois d'arrivée) + extras, réservations annulées exclues — mêmes règles que le relevé. <b>Occupation</b> = nuits occupées dans le mois ÷ (chambres ouvertes ce mois-là × jours du mois).<br>
+    <b>Prévision</b> : tendance linéaire par moindres carrés sur ${D.fR.n} mois clos${D.fR.n>=3?` (pente ${tr>=0?"+":""}${fmtD(tr)} / mois)`:" (moyenne simple : historique trop court)"}${D.fR.seasonal?`, mélangée à 50 % avec le même mois de l'an dernier × croissance annuelle (${fmtPct(D.fR.growth-1)})`:""}.
+    La prévision ne descend jamais sous ce qui est déjà réservé. Fourchette = ± 1 écart-type des écarts à la tendance (${fmtD(D.fR.sd)}). Dépenses prévues : même méthode sur l'historique des dépenses.`;
+}
+let dashRT=null;
+window.addEventListener("resize",()=>{clearTimeout(dashRT);dashRT=setTimeout(()=>{if($("app").style.display==="block")renderDash(true);},150);});
+
 /* ---- Auth / init ---- */
 async function doLogin(){
   const pw=$("g_pw").value;if(!pw){$("g_msg").textContent="Saisis le mot de passe";return;}
@@ -1110,10 +1495,12 @@ async function startApp(){
   $("gate").style.display="none";$("app").style.display="block";
   $("e_date").value=todayStr();
   await loadAll();loadSettings();renderRes();renderExp();renderInvoices();monthChips();
+  $("d_fxmode").value=["live","hist","manual"].includes(getP("fx_mode"))?getP("fx_mode"):"live";
 }
 function switchTab(v){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.v===v));
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
+  if(v==="analyses")renderDash();
 }
 (function(){
   const placeholder=SUPABASE_URL.includes("VOTRE-PROJET")||SUPABASE_ANON_KEY.includes("VOTRE_CLE");
@@ -1141,6 +1528,13 @@ function switchTab(v){
   $("rel_csv").onclick=expRelCSV;
   $("r_lodgify").onclick=syncLodgify;
   $("pdfBtn").onclick=pdfDoc;
+  $("d_cur").onchange=()=>renderDash();
+  $("d_h").onchange=()=>renderDash();
+  $("d_fxmode").onchange=async()=>{await setP("fx_mode",$("d_fxmode").value);renderDash();};
+  $("d_fxref").onclick=()=>{toast("Actualisation du taux…");refreshFx(true);};
+  $("c_eur").addEventListener("input",()=>convFrom("eur"));
+  $("c_mad").addEventListener("input",()=>convFrom("mad"));
+  $("d_fx").onchange=async()=>{const v=+$("d_fx").value;if(v>0){await setP("fx_eur",v);renderDash();}};
   $("themeBtn").onclick=toggleTheme;
   $("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload();};
   $("g_btn").onclick=doLogin;
