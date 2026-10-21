@@ -400,7 +400,7 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
     <div class="card">
       <h2><span class="n">A</span>Tableau de bord &amp; prévisions</h2>
       <div class="dash-ctl">
-        <div class="field"><label>Devise d'analyse</label><select id="d_cur"><option value="ALL">Tout converti en dh</option><option value="MAD">dh uniquement</option><option value="EUR">€ uniquement</option></select></div>
+        <div class="field"><label>Devise d'analyse</label><select id="d_cur"><option value="ALL">Tout converti en dh</option><option value="ALL_EUR">Tout converti en €</option><option value="MAD">dh uniquement</option><option value="EUR">€ uniquement</option></select></div>
         <div class="field"><label>Taux de change</label><select id="d_fxmode"><option value="live">Taux du jour (en ligne)</option><option value="hist">Taux historique de chaque mois</option><option value="manual">Taux manuel</option></select></div>
         <div class="field"><label>Taux manuel 1 € = … dh</label><input type="number" id="d_fx" min="0" step="0.01"></div>
         <div class="field"><label>Nombre de chambres</label><input type="number" id="d_rooms" min="0" step="1"></div>
@@ -1218,6 +1218,7 @@ function fxRate(k){const m=fxMode();
   return FX.live||fxManual();}
 function dv(amt,cur,k){amt=+amt||0;cur=cur==="EUR"?"EUR":"MAD";const v=dashCur();
   if(v==="ALL")return cur==="EUR"?amt*fxRate(k):amt;
+  if(v==="ALL_EUR")return cur==="MAD"?amt/fxRate(k):amt;
   return cur===v?amt:0;}
 async function refreshFx(force){
   if(FX.busy)return;FX.busy=true;
@@ -1230,7 +1231,7 @@ async function refreshFx(force){
 function convFrom(which){const r=FX.live||fxManual();
   if(which==="eur")$("c_mad").value=$("c_eur").value===""?"":(+$("c_eur").value*r).toFixed(2);
   else $("c_eur").value=$("c_mad").value===""?"":(+$("c_mad").value/r).toFixed(2);}
-function fmtD(v){return Math.round(+v||0).toLocaleString("fr-FR")+" "+(dashCur()==="EUR"?"€":"dh");}
+function fmtD(v){return Math.round(+v||0).toLocaleString("fr-FR")+" "+(dashCur()==="EUR"||dashCur()==="ALL_EUR"?"€":"dh");}
 const fmtPct=v=>(v==null||!isFinite(v))?"—":(v*100).toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
 function roomCount(){
   const p=+getP("rooms");if(p>0)return{n:p,auto:false};
@@ -1434,10 +1435,11 @@ function renderDash(fromFx){
   const cv=dashCur();
   const fm=fxMode(),live=FX.live?FX.live.toLocaleString("fr-FR",{maximumFractionDigits:4}):null;
   const nh=Object.keys(FX.hist).length;
-  $("d_hint").textContent=cv!=="ALL"?`Seuls les montants en ${cv==="EUR"?"euros":"dirhams"} sont pris en compte.`
-    :fm==="manual"?`Montants en € convertis au taux manuel 1 € = ${fxManual()} dh (analyse uniquement, le relevé reste sans conversion).`
-    :fm==="hist"?`Montants en € convertis au cours du 15 de chaque mois (${nh} mois chargés) ; mois futurs et manquants au taux du jour. Le relevé reste sans conversion.`
-    :`Montants en € convertis au taux du jour (analyse uniquement, le relevé reste sans conversion).`;
+  const toW=cv==="ALL_EUR"?"Montants en dh convertis en €":"Montants en € convertis en dh";
+  $("d_hint").textContent=cv!=="ALL"&&cv!=="ALL_EUR"?`Seuls les montants en ${cv==="EUR"?"euros":"dirhams"} sont pris en compte.`
+    :fm==="manual"?`${toW} au taux manuel 1 € = ${fxManual()} dh (analyse uniquement, le relevé reste sans conversion).`
+    :fm==="hist"?`${toW} au cours du 15 de chaque mois (${nh} mois chargés) ; mois futurs et manquants au taux du jour. Le relevé reste sans conversion.`
+    :`${toW} au taux du jour (analyse uniquement, le relevé reste sans conversion).`;
   $("d_fxinfo").textContent=live?`Taux en ligne : 1 € = ${live} dh · source ${FX.src} · mise à jour ${FX.at} (cours actualisé une fois par jour)`
     :(FX.busy?"Lecture du taux en ligne…":`Taux en ligne indisponible — taux manuel utilisé (1 € = ${fxManual()} dh).`);
   if($("c_eur").value!=="")convFrom("eur");
