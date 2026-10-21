@@ -401,14 +401,22 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
       <h2><span class="n">A</span>Tableau de bord &amp; prévisions</h2>
       <div class="dash-ctl">
         <div class="field"><label>Devise d'analyse</label><select id="d_cur"><option value="ALL">Tout converti en dh</option><option value="MAD">dh uniquement</option><option value="EUR">€ uniquement</option></select></div>
-        <div class="field"><label>Taux 1 € = … dh</label><input type="number" id="d_fx" min="0" step="0.01"></div>
+        <div class="field"><label>Taux de change</label><select id="d_fxmode"><option value="live">Taux du jour (en ligne)</option><option value="hist">Taux historique de chaque mois</option><option value="manual">Taux manuel</option></select></div>
+        <div class="field"><label>Taux manuel 1 € = … dh</label><input type="number" id="d_fx" min="0" step="0.01"></div>
         <div class="field"><label>Nombre de chambres</label><input type="number" id="d_rooms" min="0" step="1"></div>
+        <div class="field"><label>Horizon de prévision</label><select id="d_h"><option value="3">3 mois</option><option value="6" selected>6 mois</option><option value="12">12 mois</option></select></div>
       </div>
+      <div class="dash-ctl" style="margin-top:10px">
+        <div class="field"><label>Convertisseur €</label><input type="number" id="c_eur" min="0" step="any" placeholder="€"></div>
+        <div class="field"><label>= dh</label><input type="number" id="c_mad" min="0" step="any" placeholder="dh"></div>
+        <div class="field"><button class="tbtn" id="d_fxref" style="height:40px">Actualiser le taux</button></div>
+      </div>
+      <div class="hint" id="d_fxinfo"></div>
       <div class="hint" id="d_hint"></div>
     </div>
     <div class="kpis" id="dashKpis"></div>
     <div class="card">
-      <h2>Recettes &amp; dépenses par mois <span class="hint" style="margin:0">12 mois réels + 6 mois de prévision</span></h2>
+      <h2>Recettes &amp; dépenses par mois <span class="hint" style="margin:0" id="d_sub1">12 mois réels + 6 mois de prévision</span></h2>
       <div class="lg" id="lg1"></div>
       <div class="chart" id="ch1"></div>
     </div>
@@ -1168,16 +1176,60 @@ function pdfDoc(){
 }
 
 /* ---- Analyses & prévisions ---- */
-const DASH_HIST=12,DASH_FC=6;
+const DASH_HIST=12;let DASH_FC=6;
 const monthKey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
 function addMonths(k,n){const[y,m]=k.split("-").map(Number);return monthKey(new Date(y,m-1+n,1));}
 function daysIn(k){const[y,m]=k.split("-").map(Number);return new Date(y,m,0).getDate();}
 function monthLabel(k,long){const[y,m]=k.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("fr-FR",long?{month:"long",year:"numeric"}:{month:"short",year:"2-digit"});}
 function dashCur(){return $("d_cur").value||"ALL";}
-function fxRate(){return +getP("fx_eur")||10.8;}
-function dv(amt,cur){amt=+amt||0;cur=cur==="EUR"?"EUR":"MAD";const v=dashCur();
-  if(v==="ALL")return cur==="EUR"?amt*fxRate():amt;
+/* Taux EUR→MAD en ligne : ExchangeRate-API (open.er-api.com), secours
+   fawazahmed0/currency-api (jsDelivr). Sources gratuites, mises à jour une fois par jour.
+   Taux historiques : même source jsDelivr, cours du 15 de chaque mois. */
+const FX={live:null,src:"",at:"",hist:{},busy:false};
+function fxCache(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v));}catch(e){return null;}}
+async function getJSON(u){const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json();}
+async function fetchLiveFx(force){
+  const c=fxCache("riad_fx");
+  if(!force&&c&&Date.now()-c.t<3600e3){FX.live=c.r;FX.src=c.s;FX.at=c.a;return;}
+  const tries=[
+    async()=>{const j=await getJSON("https://open.er-api.com/v6/latest/EUR");if(!(j.rates&&j.rates.MAD))throw 0;
+      return{r:j.rates.MAD,s:"ExchangeRate-API",a:new Date(j.time_last_update_unix*1000).toLocaleString("fr-FR")};},
+    async()=>{const j=await getJSON("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json");if(!(j.eur&&j.eur.mad))throw 0;
+      return{r:j.eur.mad,s:"currency-api (jsDelivr)",a:frd(j.date)};}];
+  for(const t of tries){try{const x=await t();FX.live=x.r;FX.src=x.s;FX.at=x.a;fxCache("riad_fx",{...x,t:Date.now()});return;}catch(e){}}
+}
+async function fetchHistFx(keys){
+  const saved=fxCache("riad_fx_hist")||{};Object.assign(FX.hist,saved);
+  const today=todayStr();
+  const todo=keys.filter(k=>FX.hist[k]==null&&k+"-15"<today);
+  await Promise.all(todo.map(async k=>{
+    const d=k+"-15";
+    for(const u of[`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${d}/v1/currencies/eur.json`,`https://${d}.currency-api.pages.dev/v1/currencies/eur.json`]){
+      try{const j=await getJSON(u);if(j.eur&&j.eur.mad){FX.hist[k]=j.eur.mad;return;}}catch(e){}
+    }
+  }));
+  const keep={};for(const k in FX.hist)if(FX.hist[k])keep[k]=FX.hist[k];fxCache("riad_fx_hist",keep);
+}
+function fxMode(){return $("d_fxmode").value||"live";}
+function fxManual(){return +getP("fx_eur")||10.8;}
+function fxRate(k){const m=fxMode();
+  if(m==="manual")return fxManual();
+  if(m==="hist"&&k&&FX.hist[k])return FX.hist[k];
+  return FX.live||fxManual();}
+function dv(amt,cur,k){amt=+amt||0;cur=cur==="EUR"?"EUR":"MAD";const v=dashCur();
+  if(v==="ALL")return cur==="EUR"?amt*fxRate(k):amt;
   return cur===v?amt:0;}
+async function refreshFx(force){
+  if(FX.busy)return;FX.busy=true;
+  try{
+    await fetchLiveFx(force);
+    if(fxMode()==="hist"){const ks=[];const cur=monthKey(new Date());for(let i=1;i<=DASH_HIST+12;i++)ks.push(addMonths(cur,-i));await fetchHistFx(ks);}
+  }finally{FX.busy=false;}
+  renderDash(true);
+}
+function convFrom(which){const r=FX.live||fxManual();
+  if(which==="eur")$("c_mad").value=$("c_eur").value===""?"":(+$("c_eur").value*r).toFixed(2);
+  else $("c_eur").value=$("c_mad").value===""?"":(+$("c_mad").value/r).toFixed(2);}
 function fmtD(v){return Math.round(+v||0).toLocaleString("fr-FR")+" "+(dashCur()==="EUR"?"€":"dh");}
 const fmtPct=v=>(v==null||!isFinite(v))?"—":(v*100).toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
 function roomCount(){
@@ -1196,14 +1248,14 @@ function dashAgg(){
     if(!r.arrival)return;
     const o=g(String(r.arrival).slice(0,7));
     if(!live(r)){o.cancel++;return;}
-    const v=dv(r.amount,r.currency);o.rev+=v;o.stays++;
+    const v=dv(r.amount,r.currency,String(r.arrival).slice(0,7));o.rev+=v;o.stays++;
     const ch=r.channel||"Autre";o.chan[ch]=o.chan[ch]||{v:0,c:0};o.chan[ch].v+=v;o.chan[ch].c++;
     const n=nights(r.arrival,r.departure);o.stayN+=n;
     const d=new Date(String(r.arrival).slice(0,10)+"T00:00:00");
     for(let i=0;i<n&&i<370;i++){g(monthKey(d)).nights++;d.setDate(d.getDate()+1);}
   });
-  state.extras.forEach(x=>{const r=byId[x.reservation_id];if((r&&!live(r))||!x.edate)return;g(String(x.edate).slice(0,7)).ext+=dv(x.amount,x.currency);});
-  state.expenses.forEach(e=>{if(!e.edate)return;const o=g(String(e.edate).slice(0,7));const v=dv(e.amount,e.currency);o.dep+=v;
+  state.extras.forEach(x=>{const r=byId[x.reservation_id];if((r&&!live(r))||!x.edate)return;const xk=String(x.edate).slice(0,7);g(xk).ext+=dv(x.amount,x.currency,xk);});
+  state.expenses.forEach(e=>{if(!e.edate)return;const ek=String(e.edate).slice(0,7);const o=g(ek);const v=dv(e.amount,e.currency,ek);o.dep+=v;
     const c=e.category||"Autre";o.cat[c]=(o.cat[c]||0)+v;});
   return agg;
 }
@@ -1318,8 +1370,11 @@ function hbars(list,color){
     <span class="v">${fmtD(x.v)} <small>${Math.round(x.v/tot*100)}%${x.c!=null?" · "+x.c+" rés.":""}</small></span></div>`).join("");
 }
 function kpiS(v,l,sub){return `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div>${sub?`<div class="s">${sub}</div>`:""}</div>`;}
-function renderDash(){
+function renderDash(fromFx){
   if(!$("v-analyses").classList.contains("active"))return;
+  if(!fromFx)refreshFx(false);
+  DASH_FC=+$("d_h").value||6;
+  $("d_sub1").textContent=`12 mois réels + ${DASH_FC} mois de prévision`;
   $("d_fx").value=getP("fx_eur")||"10.8";
   const D=dashData(),R=D.rows,iC=D.iCur;
   const C1="var(--c1)",C2="var(--c2)";
@@ -1339,8 +1394,8 @@ function renderDash(){
     kpiS(fmtPct(occ),"Taux d'occupation",nightsW+" nuits · "+(D.rc.n?D.rc.n+" ch."+(D.rc.auto?" (détecté)":""):"chambres ?"))+
     kpiS(stayN?fmtD(resRev/stayN):"—","Prix moyen / nuit",D.rc.n&&days?"RevPAR "+fmtD(resRev/(D.rc.n*days)):"")+
     kpiS(stays?(stayN/stays).toLocaleString("fr-FR",{maximumFractionDigits:1})+" n.":"—","Durée moyenne séjour",stays?stays+" séjours · panier "+fmtD(resRev/stays):"")+
-    kpiS(fmtD(fRev),"Recettes prévues 6 mois",fmtD(fBooked)+" déjà réservés")+
-    kpiS(fmtD(fNet),"Net prévu 6 mois",(stays+cancel)?"annulation "+fmtPct(cancel/(stays+cancel)):"");
+    kpiS(fmtD(fRev),`Recettes prévues ${DASH_FC} mois`,fmtD(fBooked)+" déjà réservés")+
+    kpiS(fmtD(fNet),`Net prévu ${DASH_FC} mois`,(stays+cancel)?"annulation "+fmtPct(cancel/(stays+cancel)):"");
   const labels=R.map(x=>monthLabel(x.k)),tipLabels=R.map(x=>monthLabel(x.k,true)+" · "+x.st.toLowerCase());
   const real=f=>R.map((x,i)=>i<iC?f(x):null);
   const fc=f=>R.map((x,i)=>i===iC-1?(iC>0?f(x):null):i>=iC?f(x):null);
@@ -1377,14 +1432,22 @@ function renderDash(){
       <td class="num">${x.nights||""}</td><td class="num">${fmtPct(x.occ)}</td></tr>`;}).join("");
   /* méthode */
   const cv=dashCur();
-  $("d_hint").textContent=cv==="ALL"?`Montants en € convertis au taux 1 € = ${fxRate()} dh (analyse uniquement, le relevé reste sans conversion).`:`Seuls les montants en ${cv==="EUR"?"euros":"dirhams"} sont pris en compte.`;
+  const fm=fxMode(),live=FX.live?FX.live.toLocaleString("fr-FR",{maximumFractionDigits:4}):null;
+  const nh=Object.keys(FX.hist).length;
+  $("d_hint").textContent=cv!=="ALL"?`Seuls les montants en ${cv==="EUR"?"euros":"dirhams"} sont pris en compte.`
+    :fm==="manual"?`Montants en € convertis au taux manuel 1 € = ${fxManual()} dh (analyse uniquement, le relevé reste sans conversion).`
+    :fm==="hist"?`Montants en € convertis au cours du 15 de chaque mois (${nh} mois chargés) ; mois futurs et manquants au taux du jour. Le relevé reste sans conversion.`
+    :`Montants en € convertis au taux du jour (analyse uniquement, le relevé reste sans conversion).`;
+  $("d_fxinfo").textContent=live?`Taux en ligne : 1 € = ${live} dh · source ${FX.src} · mise à jour ${FX.at} (cours actualisé une fois par jour)`
+    :(FX.busy?"Lecture du taux en ligne…":`Taux en ligne indisponible — taux manuel utilisé (1 € = ${fxManual()} dh).`);
+  if($("c_eur").value!=="")convFrom("eur");
   const tr=D.fR.slope;
   $("d_method").innerHTML=`<b>Recettes</b> = séjours (rattachés au mois d'arrivée) + extras, réservations annulées exclues — mêmes règles que le relevé. <b>Occupation</b> = nuits occupées dans le mois ÷ (chambres × jours du mois).<br>
     <b>Prévision</b> : tendance linéaire par moindres carrés sur ${D.fR.n} mois clos${D.fR.n>=3?` (pente ${tr>=0?"+":""}${fmtD(tr)} / mois)`:" (moyenne simple : historique trop court)"}${D.fR.seasonal?`, mélangée à 50 % avec le même mois de l'an dernier × croissance annuelle (${fmtPct(D.fR.growth-1)})`:""}.
     La prévision ne descend jamais sous ce qui est déjà réservé. Fourchette = ± 1 écart-type des écarts à la tendance (${fmtD(D.fR.sd)}). Dépenses prévues : même méthode sur l'historique des dépenses.`;
 }
 let dashRT=null;
-window.addEventListener("resize",()=>{clearTimeout(dashRT);dashRT=setTimeout(()=>{if($("app").style.display==="block")renderDash();},150);});
+window.addEventListener("resize",()=>{clearTimeout(dashRT);dashRT=setTimeout(()=>{if($("app").style.display==="block")renderDash(true);},150);});
 
 /* ---- Auth / init ---- */
 async function doLogin(){
@@ -1399,6 +1462,7 @@ async function startApp(){
   $("e_date").value=todayStr();
   await loadAll();loadSettings();renderRes();renderExp();renderInvoices();monthChips();
   $("d_rooms").value=getP("rooms")||"";
+  $("d_fxmode").value=["live","hist","manual"].includes(getP("fx_mode"))?getP("fx_mode"):"live";
 }
 function switchTab(v){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.v===v));
@@ -1431,7 +1495,12 @@ function switchTab(v){
   $("rel_csv").onclick=expRelCSV;
   $("r_lodgify").onclick=syncLodgify;
   $("pdfBtn").onclick=pdfDoc;
-  $("d_cur").onchange=renderDash;
+  $("d_cur").onchange=()=>renderDash();
+  $("d_h").onchange=()=>renderDash();
+  $("d_fxmode").onchange=async()=>{await setP("fx_mode",$("d_fxmode").value);renderDash();};
+  $("d_fxref").onclick=()=>{toast("Actualisation du taux…");refreshFx(true);};
+  $("c_eur").addEventListener("input",()=>convFrom("eur"));
+  $("c_mad").addEventListener("input",()=>convFrom("mad"));
   $("d_fx").onchange=async()=>{const v=+$("d_fx").value;if(v>0){await setP("fx_eur",v);renderDash();}};
   $("d_rooms").onchange=async()=>{await setP("rooms",Math.max(0,Math.round(+$("d_rooms").value||0)));renderDash();};
   $("themeBtn").onclick=toggleTheme;
