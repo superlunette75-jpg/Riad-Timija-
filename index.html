@@ -195,6 +195,11 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
 .hbar .v{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--bone);text-align:right;white-space:nowrap}
 .hbar .v small{color:var(--steel)}
 .kpi .s{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--steel);margin-top:2px}
+.rplan{display:flex;gap:6px;white-space:nowrap;flex-wrap:wrap;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--steel)}
+.rplan input{background:var(--ink);border:1px solid var(--line);border-radius:6px;color:var(--bone);padding:6px 7px;font-size:12.5px}
+.rplan input[type=number]{width:62px;font-family:"IBM Plex Mono",monospace}
+.rplan input[type=month]{color-scheme:light dark}
+.rplan button{background:none;border:none;color:var(--blood-soft);font-size:12px;padding:0 3px}
 .dnote{font-size:11.5px;color:var(--steel);line-height:1.6}
 .app-t tr.fc td{color:var(--steel)}
 /* ---- mobile ---- */
@@ -403,9 +408,10 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
         <div class="field"><label>Devise d'analyse</label><select id="d_cur"><option value="ALL">Tout converti en dh</option><option value="ALL_EUR">Tout converti en €</option><option value="MAD">dh uniquement</option><option value="EUR">€ uniquement</option></select></div>
         <div class="field"><label>Taux de change</label><select id="d_fxmode"><option value="live">Taux du jour (en ligne)</option><option value="hist">Taux historique de chaque mois</option><option value="manual">Taux manuel</option></select></div>
         <div class="field"><label>Taux manuel 1 € = … dh</label><input type="number" id="d_fx" min="0" step="0.01"></div>
-        <div class="field"><label>Nombre de chambres</label><input type="number" id="d_rooms" min="0" step="1"></div>
         <div class="field"><label>Horizon de prévision</label><select id="d_h"><option value="3">3 mois</option><option value="6" selected>6 mois</option><option value="12">12 mois</option></select></div>
       </div>
+      <div class="field" style="margin-top:10px"><label>Nombre de chambres (historique)</label>
+        <div class="dash-ctl" id="d_roomplan"></div></div>
       <div class="dash-ctl" style="margin-top:10px">
         <div class="field"><label>Convertisseur €</label><input type="number" id="c_eur" min="0" step="any" placeholder="€"></div>
         <div class="field"><label>= dh</label><input type="number" id="c_mad" min="0" step="any" placeholder="dh"></div>
@@ -1233,10 +1239,34 @@ function convFrom(which){const r=FX.live||fxManual();
   else $("c_eur").value=$("c_mad").value===""?"":(+$("c_mad").value/r).toFixed(2);}
 function fmtD(v){return Math.round(+v||0).toLocaleString("fr-FR")+" "+(dashCur()==="EUR"||dashCur()==="ALL_EUR"?"€":"dh");}
 const fmtPct=v=>(v==null||!isFinite(v))?"—":(v*100).toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
+/* Nombre de chambres dans le temps : [{from:"",n:5},{from:"2026-10",n:6}]
+   ("" = depuis le début). Repli : ancien réglage unique, puis chambres détectées. */
+function roomPlan(){
+  let plan=null;try{plan=JSON.parse(getP("rooms_plan")||"null");}catch(e){}
+  if(!Array.isArray(plan)||!plan.length){const p=+getP("rooms");plan=[{from:"",n:p>0?p:0}];}
+  const base=plan.find(x=>!x.from)||{from:"",n:0};
+  return[{from:"",n:+base.n||0},...plan.filter(x=>x.from).map(x=>({from:String(x.from).slice(0,7),n:+x.n||0})).sort((a,b)=>a.from<b.from?-1:1)];
+}
 function roomCount(){
-  const p=+getP("rooms");if(p>0)return{n:p,auto:false};
+  const plan=roomPlan();
+  if(plan.some(x=>x.n>0))return{plan,auto:false,at:k=>{let n=0;plan.forEach(x=>{if(!x.from||k>=x.from)n=x.n;});return n;}};
   const set=new Set(state.reservations.map(r=>String(r.room||"").trim().toLowerCase()).filter(Boolean));
-  return{n:set.size,auto:true};
+  return{plan,auto:true,at:()=>set.size};
+}
+async function saveRoomPlan(plan){await setP("rooms_plan",JSON.stringify(plan));renderRoomPlan();renderDash();}
+function renderRoomPlan(){
+  const plan=roomPlan();
+  $("d_roomplan").innerHTML=plan.map((x,i)=>`<span class="rplan">${i?`à partir de <input type="month" data-rp="from" data-i="${i}" value="${esc(x.from)}">`:"au départ"}
+    <input type="number" min="0" step="1" data-rp="n" data-i="${i}" value="${x.n||""}" placeholder="0"> ch.
+    ${i?`<button data-rp="del" data-i="${i}" title="Supprimer">✕</button>`:""}</span>`).join("")
+    +`<button class="tbtn" id="d_rpadd">＋ Changement</button>`;
+  $("d_roomplan").querySelectorAll("input").forEach(el=>el.onchange=()=>{
+    const p=roomPlan(),i=+el.dataset.i;
+    if(el.dataset.rp==="n")p[i].n=Math.max(0,Math.round(+el.value||0));else p[i].from=el.value;
+    saveRoomPlan(p.filter((x,j)=>!j||x.from));});
+  $("d_roomplan").querySelectorAll("button[data-rp=del]").forEach(b=>b.onclick=()=>{const p=roomPlan();p.splice(+b.dataset.i,1);saveRoomPlan(p);});
+  $("d_rpadd").onclick=()=>{const p=roomPlan();const last=p[p.length-1];
+    p.push({from:monthKey(new Date()),n:last.n||0});saveRoomPlan(p);};
 }
 /* Agrégats mensuels, mêmes règles que le relevé : séjour rattaché au mois d'arrivée,
    extras et dépenses à leur date, réservations annulées exclues.
@@ -1300,7 +1330,7 @@ function dashData(){
     const st=k<curK?"Réel":k===curK?"En cours":"Prévision";
     const booked=o.rev+o.ext;
     const row={k,st,o,rev:booked,dep:o.dep,booked,nights:o.nights,
-      occ:rc.n?o.nights/(rc.n*daysIn(k)):null};
+      rooms:rc.at(k),occ:rc.at(k)?o.nights/(rc.at(k)*daysIn(k)):null};
     if(k>=curK){
       row.eRev=Math.max(fR.vals[k],booked);
       row.eDep=Math.max(fD.vals[k],o.dep);
@@ -1375,6 +1405,7 @@ function renderDash(fromFx){
   if(!$("v-analyses").classList.contains("active"))return;
   if(!fromFx)refreshFx(false);
   DASH_FC=+$("d_h").value||6;
+  if(!$("d_roomplan").contains(document.activeElement))renderRoomPlan();
   $("d_sub1").textContent=`12 mois réels + ${DASH_FC} mois de prévision`;
   $("d_fx").value=getP("fx_eur")||"10.8";
   const D=dashData(),R=D.rows,iC=D.iCur;
@@ -1384,16 +1415,17 @@ function renderDash(fromFx){
   const sum=(arr,f)=>arr.reduce((s,x)=>s+f(x),0);
   const rev=sum(hist,x=>x.rev),dep=sum(hist,x=>x.dep),net=rev-dep;
   const nightsW=sum(hist,x=>x.nights),stays=sum(hist,x=>x.o.stays),stayN=sum(hist,x=>x.o.stayN),resRev=sum(hist,x=>x.o.rev);
-  const days=sum(hist,x=>daysIn(x.k)),cancel=sum(hist,x=>x.o.cancel);
-  const occ=D.rc.n?nightsW/(D.rc.n*days):null;
+  const cancel=sum(hist,x=>x.o.cancel),cap=sum(hist,x=>x.rooms*daysIn(x.k));
+  const occ=cap?nightsW/cap:null;
+  const rN=[...new Set(hist.map(x=>x.rooms))],rTxt=rN.join("→")+" ch."+(D.rc.auto?" (détecté)":"");
   const fRev=sum(fut,x=>x.eRev),fNet=sum(fut,x=>x.net),fBooked=sum(fut,x=>x.booked);
   const prevYear=(()=>{let s=0;for(let i=0;i<DASH_HIST;i++){const o=D.agg[addMonths(D.curK,-i-12)];if(o)s+=o.rev+o.ext;}return s;})();
   $("dashKpis").innerHTML=
     kpiS(fmtD(rev),"Recettes 12 mois",prevYear?(rev>=prevYear?"▲ ":"▼ ")+fmtPct(rev/prevYear-1)+" vs an −1":"séjours + extras")+
     kpiS(fmtD(dep),"Dépenses 12 mois",rev?fmtPct(dep/rev)+" des recettes":"")+
     kpiS(fmtD(net),"Résultat net 12 mois",rev?"marge "+fmtPct(net/rev):"")+
-    kpiS(fmtPct(occ),"Taux d'occupation",nightsW+" nuits · "+(D.rc.n?D.rc.n+" ch."+(D.rc.auto?" (détecté)":""):"chambres ?"))+
-    kpiS(stayN?fmtD(resRev/stayN):"—","Prix moyen / nuit",D.rc.n&&days?"RevPAR "+fmtD(resRev/(D.rc.n*days)):"")+
+    kpiS(fmtPct(occ),"Taux d'occupation",nightsW+" nuits / "+cap+" dispo · "+(cap?rTxt:"chambres ?"))+
+    kpiS(stayN?fmtD(resRev/stayN):"—","Prix moyen / nuit",cap?"RevPAR "+fmtD(resRev/cap):"")+
     kpiS(stays?(stayN/stays).toLocaleString("fr-FR",{maximumFractionDigits:1})+" n.":"—","Durée moyenne séjour",stays?stays+" séjours · panier "+fmtD(resRev/stays):"")+
     kpiS(fmtD(fRev),`Recettes prévues ${DASH_FC} mois`,fmtD(fBooked)+" déjà réservés")+
     kpiS(fmtD(fNet),`Net prévu ${DASH_FC} mois`,(stays+cancel)?"annulation "+fmtPct(cancel/(stays+cancel)):"");
@@ -1413,7 +1445,7 @@ function renderDash(fromFx){
   svgChart($("ch2"),{title:"Résultat net cumulé",labels,tipLabels,split:iC,h:220,
     series:[{name:"Net cumulé",group:"n",color:C1,vals:cum.map((v,i)=>i<iC?v:null)},{name:"Net cumulé prévu",group:"n",color:C1,dash:true,vals:cum.map((v,i)=>i>=iC-1&&iC>0||i>=iC?v:null)}]});
   /* 3 · occupation */
-  if(D.rc.n){
+  if(R.some(x=>x.rooms)){
     $("lg3").innerHTML=legend([{name:"Réel",cls:"sq",color:C1},{name:"Réservé (à venir)",cls:"sq",color:C1,op:.4}]);
     svgChart($("ch3"),{title:"Taux d'occupation mensuel",labels,tipLabels,split:iC,h:220,unit:"%",fmt:fmtPct,series:[],
       bars:[{name:"Occupation",color:C1,vals:R.map((x,i)=>i<iC?x.occ:null)},{name:"Occupation réservée",color:C1,op:.4,vals:R.map((x,i)=>i>=iC?x.occ:null)}]});
@@ -1430,7 +1462,7 @@ function renderDash(fromFx){
       <td class="num">${fmtD(rv)}${f?`<div style="font-size:9.5px;color:var(--steel)">± ${fmtD(D.fR.sd)}</div>`:""}</td>
       <td class="num">${f?fmtD(x.booked):"—"}</td><td class="num">${fmtD(dp)}</td>
       <td class="num" style="color:${x.net<0?"var(--blood-soft)":"inherit"}">${fmtD(x.net)}</td>
-      <td class="num">${x.nights||""}</td><td class="num">${fmtPct(x.occ)}</td></tr>`;}).join("");
+      <td class="num">${x.nights||""}</td><td class="num">${fmtPct(x.occ)}<div style="font-size:9.5px;color:var(--steel)">${x.rooms||"?"} ch.</div></td></tr>`;}).join("");
   /* méthode */
   const cv=dashCur();
   const fm=fxMode(),live=FX.live?FX.live.toLocaleString("fr-FR",{maximumFractionDigits:4}):null;
@@ -1444,7 +1476,7 @@ function renderDash(fromFx){
     :(FX.busy?"Lecture du taux en ligne…":`Taux en ligne indisponible — taux manuel utilisé (1 € = ${fxManual()} dh).`);
   if($("c_eur").value!=="")convFrom("eur");
   const tr=D.fR.slope;
-  $("d_method").innerHTML=`<b>Recettes</b> = séjours (rattachés au mois d'arrivée) + extras, réservations annulées exclues — mêmes règles que le relevé. <b>Occupation</b> = nuits occupées dans le mois ÷ (chambres × jours du mois).<br>
+  $("d_method").innerHTML=`<b>Recettes</b> = séjours (rattachés au mois d'arrivée) + extras, réservations annulées exclues — mêmes règles que le relevé. <b>Occupation</b> = nuits occupées dans le mois ÷ (chambres ouvertes ce mois-là × jours du mois).<br>
     <b>Prévision</b> : tendance linéaire par moindres carrés sur ${D.fR.n} mois clos${D.fR.n>=3?` (pente ${tr>=0?"+":""}${fmtD(tr)} / mois)`:" (moyenne simple : historique trop court)"}${D.fR.seasonal?`, mélangée à 50 % avec le même mois de l'an dernier × croissance annuelle (${fmtPct(D.fR.growth-1)})`:""}.
     La prévision ne descend jamais sous ce qui est déjà réservé. Fourchette = ± 1 écart-type des écarts à la tendance (${fmtD(D.fR.sd)}). Dépenses prévues : même méthode sur l'historique des dépenses.`;
 }
@@ -1463,7 +1495,6 @@ async function startApp(){
   $("gate").style.display="none";$("app").style.display="block";
   $("e_date").value=todayStr();
   await loadAll();loadSettings();renderRes();renderExp();renderInvoices();monthChips();
-  $("d_rooms").value=getP("rooms")||"";
   $("d_fxmode").value=["live","hist","manual"].includes(getP("fx_mode"))?getP("fx_mode"):"live";
 }
 function switchTab(v){
@@ -1504,7 +1535,6 @@ function switchTab(v){
   $("c_eur").addEventListener("input",()=>convFrom("eur"));
   $("c_mad").addEventListener("input",()=>convFrom("mad"));
   $("d_fx").onchange=async()=>{const v=+$("d_fx").value;if(v>0){await setP("fx_eur",v);renderDash();}};
-  $("d_rooms").onchange=async()=>{await setP("rooms",Math.max(0,Math.round(+$("d_rooms").value||0)));renderDash();};
   $("themeBtn").onclick=toggleTheme;
   $("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload();};
   $("g_btn").onclick=doLogin;
