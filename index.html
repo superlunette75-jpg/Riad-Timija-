@@ -202,12 +202,75 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
 .rplan button{background:none;border:none;color:var(--blood-soft);font-size:12px;padding:0 3px}
 .dnote{font-size:11.5px;color:var(--steel);line-height:1.6}
 .app-t tr.fc td{color:var(--steel)}
+/* ---- facture client ---- */
+.ci-g1{grid-template-columns:2fr 1fr 1fr 1fr .9fr .7fr}
+.ci-g2{grid-template-columns:.5fr 1.2fr 1.2fr 1.4fr 1.4fr}
+.ci-g3{grid-template-columns:1.2fr 1.2fr .9fr 1.4fr}
+.ci-h{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field textarea{resize:vertical}
+.ci-lines td{padding:6px 6px}
+.ci-lines input{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:6px;color:var(--bone);padding:6px 7px;font-size:12.5px}
+.ci-lines input[type=number]{font-family:"IBM Plex Mono",monospace;text-align:right}
+.ci-lines input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold)}
+.ci-warn{background:rgba(201,162,75,.1);border:1px solid rgba(201,162,75,.45);color:var(--bone);border-radius:10px;padding:10px 14px;font-size:12.5px;margin-top:12px;line-height:1.6}
+.ci-warn b{color:var(--gold)}
+details.ci-etab{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+details.ci-etab summary{cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--steel)}
+details.ci-etab .settings-grid{margin-top:10px}
+.paper.cinv{max-width:794px;display:flex;flex-direction:column;min-height:1080px;color:#1A1A1A}
+.cinv *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cinv .ch{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;border-bottom:1.2px solid #1A1A1A;padding-bottom:10px;margin-bottom:16px}
+.cinv .nm{font-family:"Fraunces",serif;font-weight:700;font-size:19px}
+.cinv .nm b{color:#A8862B}
+.cinv .mo{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:#6B6B6B;margin-top:3px}
+.cinv .ch .rt{text-align:right}
+.cinv .sp{font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#6B6B6B}
+.cinv .boxes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cinv .bx{border:1px solid #B9B39F;padding:10px 12px;min-height:122px}
+.cinv .bx .cn{font-weight:600;font-size:14px;margin:6px 0 4px}
+.cinv .bx .ln{font-size:12.5px}
+.cinv .bx .idr{display:flex;gap:10px;margin-top:4px;align-items:baseline}
+.cinv .bx .idr .v{font-family:"IBM Plex Mono",monospace;font-size:10.5px}
+.cinv .kv{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-top:8px}
+.cinv .kv span{color:#6B6B6B}
+.cinv .kv b{font-weight:600;text-align:right}
+.cinv table.ct{width:100%;border-collapse:collapse;margin-top:22px}
+.cinv .ct th{background:#F6F3EA;border:1px solid #B9B39F;padding:8px 10px;text-align:left;font-weight:400}
+.cinv .ct td{border:1px solid #B9B39F;padding:8px 10px;font-size:12.5px;vertical-align:top}
+.cinv .ct .r{text-align:right;white-space:nowrap}
+.cinv .ct td b{font-weight:600}
+.cinv .ct .d{font-size:10.5px;color:#6B6B6B;margin-top:2px}
+.cinv .ct td.dt{font-family:"IBM Plex Mono",monospace;font-size:11px;color:#6B6B6B;white-space:nowrap;width:1%}
+.cinv .mid{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:12px}
+.cinv .stamp{transform:rotate(-8deg);border:2px solid #A8862B;color:#A8862B;border-radius:5px;padding:6px 14px;text-align:center;margin:26px 0 0 70px}
+.cinv .stamp .a{font-weight:700;font-size:17px;letter-spacing:.04em}
+.cinv .stamp .b{font-family:"IBM Plex Mono",monospace;font-size:8px;text-transform:uppercase}
+.cinv .tots{width:47%;margin-left:auto}
+.cinv .tots .t{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:3px 10px}
+.cinv .tots .t span:first-child{color:#6B6B6B}
+.cinv .net{background:#1A1A1A;color:#fff;display:flex;justify-content:space-between;gap:10px;padding:9px 10px;font-weight:700;font-size:13.5px;margin-top:4px}
+.cinv .net span:last-child{color:#E2C77A}
+.cinv .words{border:1px solid #B9B39F;padding:10px 12px;margin-top:24px}
+.cinv .words .w{font-weight:600;font-size:12.5px;margin-top:6px}
+.cinv .regs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.cinv .regs .v{font-size:12.5px;margin-top:4px}
+.cinv .sig{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:58px}
+.cinv .sig>div:last-child{border-top:1px solid #1A1A1A;padding-top:5px}
+.cinv .foot{margin-top:auto;padding-top:30px}
+.cinv .foot div{border-top:1px solid #B9B39F;padding-top:8px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:8.5px;color:#6B6B6B;line-height:1.8}
 /* ---- mobile ---- */
 @media(max-width:760px){
   .kpis{grid-template-columns:1fr 1fr}
   .fg-res1,.fg-res2,.fg-exp{grid-template-columns:1fr 1fr}
   .settings-grid{grid-template-columns:1fr}
   .dgrid{grid-template-columns:1fr}
+  .ci-g1,.ci-g2,.ci-g3{grid-template-columns:1fr 1fr}
+  .ci-g1>.field:first-child{grid-column:span 2}
+  .paper.cinv{min-height:0}
+  .cinv .boxes,.cinv .regs{grid-template-columns:1fr}
+  .cinv .tots{width:100%}
+  .cinv .mid{flex-direction:column-reverse}
+  .cinv .stamp{margin:14px auto 0}
   .csvbar{margin-left:0;width:100%}
   .paper{padding:20px 16px}
   .card h2{font-size:15.5px}
@@ -266,6 +329,7 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
   body.printing>#printRoot{display:block!important}
   #printRoot{width:100%;margin:0;padding:0}
   #printRoot .paper{display:block!important;width:100%;max-width:100%;margin:0;border:none;border-radius:0;box-shadow:none}
+  #printRoot .paper.cinv{display:flex!important;min-height:272mm;padding:0 2px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -299,6 +363,7 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
     <button class="tab" data-v="depenses">Dépenses</button>
     <button class="tab" data-v="releve">Relevé</button>
     <button class="tab" data-v="analyses">Analyses</button>
+    <button class="tab" data-v="factclient">Facture client</button>
     <button class="tab" data-v="params">Paramètres</button>
   </div>
 
@@ -441,6 +506,74 @@ body.dark{--c1:#B78A20;--c2:#5A8EEE}
       </table>
     </div>
     <div class="card"><h2>Méthode de calcul</h2><div class="dnote" id="d_method"></div></div>
+  </section>
+
+  <!-- ===== FACTURE CLIENT ===== -->
+  <section class="view" id="v-factclient">
+    <div class="card">
+      <h2><span class="n">F</span>Facture client
+        <span class="csvbar">
+          <button class="tbtn" id="ci_print">Imprimer</button>
+          <button class="tbtn" id="ci_pdf">Télécharger PDF</button>
+          <button class="addbtn" id="ci_save">Enregistrer la facture</button>
+        </span>
+      </h2>
+      <div class="form-grid ci-g1">
+        <div class="field"><label>Réservation</label><select id="ci_res"></select></div>
+        <div class="field"><label>Type</label><select id="ci_type"><option value="sejour">Séjour</option><option value="restauration">Restauration (extras)</option></select></div>
+        <div class="field"><label>N° de facture</label><input type="text" id="ci_num" placeholder="AAAA-MM-NNN"></div>
+        <div class="field"><label>Émise le</label><input type="date" id="ci_date"></div>
+        <div class="field"><label>TVA</label><select id="ci_tva"><option value="0">Non applicable</option><option value="10">10 %</option></select></div>
+        <div class="field"><label>Devise</label><select id="ci_cur"><option value="MAD">dh</option><option value="EUR">€</option></select></div>
+      </div>
+      <div class="hint" id="ci_numhint"></div>
+      <h3 class="ci-h">Client</h3>
+      <div class="form-grid ci-g2">
+        <div class="field"><label>Civilité</label><select id="ci_civ"><option value="M.">M.</option><option value="Mme">Mme</option><option value="">—</option></select></div>
+        <div class="field"><label>Nom du client</label><input type="text" id="ci_guest" placeholder="Prénom Nom"></div>
+        <div class="field"><label>Société (facultatif)</label><input type="text" id="ci_soc" placeholder="Raison sociale"></div>
+        <div class="field"><label>Adresse (une ligne par ligne)</label><textarea id="ci_addr" rows="2"></textarea></div>
+        <div class="field"><label>Identifiants (ex. SIRET : …)</label><textarea id="ci_ids" rows="2" placeholder="SIRET : …&#10;TVA : …"></textarea></div>
+      </div>
+      <h3 class="ci-h">Règlement &amp; taxe de séjour</h3>
+      <div class="form-grid ci-g3">
+        <div class="field"><label>Mode de règlement</label><input type="text" id="ci_reg"></div>
+        <div class="field"><label>Taxe de séjour</label><div class="moneyrow"><input type="number" id="ci_taxe" min="0" step="0.01"><select id="ci_taxinc" style="width:100px"><option value="1">incluse</option><option value="0">en sus</option></select></div></div>
+        <div class="field"><label>&nbsp;</label><div class="chk"><input type="checkbox" id="ci_acq"><span>Tampon « Acquittée »</span></div></div>
+        <div class="field"><label>Mention du tampon</label><input type="text" id="ci_acqtxt" placeholder="JJ/MM/AAAA · Carte (TPE)"></div>
+      </div>
+      <h3 class="ci-h">Lignes facturées
+        <button class="tbtn" id="ci_addline">＋ Ligne</button>
+        <button class="tbtn" id="ci_regen">Recalculer depuis la réservation</button>
+      </h3>
+      <div class="tablewrap" style="box-shadow:none">
+        <table class="app-t ci-lines" style="min-width:760px">
+          <thead><tr><th>Date</th><th>Désignation</th><th>Détail</th><th class="num">Qté</th><th class="num">PU</th><th class="num">Montant</th><th title="Soumis à TVA">TVA</th><th></th></tr></thead>
+          <tbody id="ci_lines"></tbody>
+        </table>
+      </div>
+      <div id="ci_warn"></div>
+      <details class="ci-etab"><summary>En-tête de l'établissement (facture client)</summary>
+        <div class="settings-grid">
+          <div class="field"><label>Société</label><input type="text" id="ci_e_nom"></div>
+          <div class="field"><label>Établissement</label><input type="text" id="ci_e_marque"></div>
+          <div class="field" style="grid-column:span 2"><label>Adresse</label><input type="text" id="ci_e_adresse"></div>
+          <div class="field"><label>ICE</label><input type="text" id="ci_e_ice"></div>
+          <div class="field"><label>IF</label><input type="text" id="ci_e_if"></div>
+          <div class="field"><label>RC</label><input type="text" id="ci_e_rc"></div>
+          <div class="field"><label>Patente</label><input type="text" id="ci_e_patente"></div>
+        </div>
+        <div class="savebar"><button class="addbtn" id="ci_e_save">Enregistrer l'en-tête</button></div>
+      </details>
+    </div>
+    <div class="paper-shell"><div class="paper cinv" id="paperClient"></div></div>
+    <div class="card" style="margin-top:18px">
+      <h2>Factures client émises</h2>
+      <div class="tablewrap" style="border:none;box-shadow:none">
+        <table class="app-t" style="min-width:560px"><thead><tr><th>Numéro</th><th>Émise le</th><th>Client</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody id="ci_log"></tbody></table>
+      </div>
+    </div>
   </section>
 
   <!-- ===== PARAMETRES ===== -->
@@ -1483,6 +1616,309 @@ function renderDash(fromFx){
 let dashRT=null;
 window.addEventListener("resize",()=>{clearTimeout(dashRT);dashRT=setTimeout(()=>{if($("app").style.display==="block")renderDash(true);},150);});
 
+/* ---- Facture client (modèle « facture-riad-timija ») ----
+   TVA non applicable par défaut, taxe de séjour sur une ligne hors TVA,
+   montant en lettres, tampon « Acquittée ». Numéros AAAA-MM-NNN. */
+const CI={lines:[],res:null};
+const CI_ETAB={ci_e_nom:["ci_nom","RIADHEL"],ci_e_marque:["ci_marque","Riad Timija"],ci_e_adresse:["ci_adresse","Kaat bennahid 4 CP 40000 MARRAKECH"],
+  ci_e_ice:["ci_ice","003700690000003"],ci_e_if:["ci_if",""],ci_e_rc:["ci_rc",""],ci_e_patente:["ci_patente",""]};
+function ciE(id){const[k,d]=CI_ETAB[id];const v=getP(k);return v!==""?v:d;}
+const r2=v=>Math.round((+v||0)*100)/100;
+const ciRate=()=>+getP("taxe")||25;
+const CI_U=["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","onze","douze","treize","quatorze","quinze","seize","dix-sept","dix-huit","dix-neuf"];
+const CI_T={2:"vingt",3:"trente",4:"quarante",5:"cinquante",6:"soixante"};
+function ciLt100(n){
+  if(n<20)return CI_U[n];
+  const d=Math.floor(n/10),u=n%10;
+  if(d===7||d===9){const r=n-(d===7?60:80);if(d===7&&r===11)return"soixante et onze";return(d===7?"soixante":"quatre-vingt")+"-"+CI_U[r];}
+  if(d===8)return u===0?"quatre-vingts":"quatre-vingt-"+CI_U[u];
+  if(u===0)return CI_T[d];
+  if(u===1)return CI_T[d]+" et un";
+  return CI_T[d]+"-"+CI_U[u];
+}
+function ciLt1000(n){const c=Math.floor(n/100),r=n%100;if(!c)return ciLt100(r);
+  const head=c===1?"cent":CI_U[c]+" cent";if(!r)return head+(c>1?"s":"");return head+" "+ciLt100(r);}
+function ciLettresN(n){
+  if(!n)return"zéro";const parts=[];
+  const mil=Math.floor(n/1e6);let r=n%1e6;
+  if(mil)parts.push(ciLt1000(mil)+(mil===1?" million":" millions"));
+  const k=Math.floor(r/1000);r=r%1000;
+  if(k){if(k===1)parts.push("mille");else{let w=ciLt1000(k);if(/cents$|vingts$/.test(w))w=w.slice(0,-1);parts.push(w+" mille");}}
+  if(r)parts.push(ciLt1000(r));
+  return parts.join(" ");
+}
+function ciLettres(v,cur){
+  const cents=Math.round((+v||0)*100),u=Math.floor(cents/100),c=cents%100;
+  const unit=cur==="EUR"?(u<=1?" euro":" euros"):(u<=1?" dirham":" dirhams");
+  let s=ciLettresN(u)+(u&&u%1e6===0?" de":"")+unit;
+  if(c)s+=" et "+ciLettresN(c)+(c===1?" centime":" centimes");
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function ciMoney(v,cur){return(+v||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/[  ]/g," ")+(cur==="EUR"?" €":" dh");}
+function ciCase(s){return String(s||"").trim().replace(/\s+/g," ").toLowerCase().replace(/(^|[\s\-'’])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase());}
+function ciPay(m){return m==="Carte (TPE)"?"Carte bancaire (TPE)":m==="Virement"?"Virement bancaire":(m||"");}
+function ciRoom(r){if(!r||!r.room)return"";return/^(la\s+)?chambre\b/i.test(r.room)?r.room:"Chambre "+r.room;}
+const ciPl=(n,w)=>n+" "+w+(n>1?"s":"");
+function ciClient(){
+  const name=[$("ci_civ").value,ciCase($("ci_guest").value)].filter(Boolean).join(" ");
+  const soc=$("ci_soc").value.trim();
+  const lines=$("ci_addr").value.split("\n").map(x=>x.trim()).filter(Boolean);
+  const ids=$("ci_ids").value.split("\n").map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^([^:]+?)\s*:\s*(.+)$/);return m?[m[1],m[2]]:["",x];});
+  return soc?{nom:soc,attention:ciCase($("ci_guest").value)?name:"",lines,ids}:{nom:name,attention:"",lines,ids};
+}
+/* Lignes depuis la réservation, selon les règles du modèle */
+function ciBuild(){
+  const r=CI.res;if(!r)return;
+  if($("ci_type").value==="restauration"){
+    CI.lines=extrasOf(r.id).slice().sort((a,b)=>String(a.edate).localeCompare(String(b.edate)))
+      .map(x=>({date:frd(x.edate),designation:x.label||"",detail:"",qte:1,pu:r2(x.amount),montant:r2(x.amount),soumis:true}));
+    return;
+  }
+  const n=nights(r.arrival,r.departure),pax=+r.pax||0;
+  const tax=r2($("ci_taxe").value),inc=$("ci_taxinc").value==="1";
+  const heb=r2(inc?(+r.amount||0)-tax:(+r.amount||0));
+  const room=ciRoom(r);
+  const exact=n>0&&Math.round(heb*100)%n===0;
+  const per=pax?", "+ciPl(pax,"personne"):"";
+  const L=[exact
+    ?{designation:"Hébergement"+(room?" · "+room:""),detail:`${ciPl(n,"nuitée")} du ${frd(r.arrival)} au ${frd(r.departure)}${per}`,qte:n,pu:r2(heb/n),montant:heb,soumis:true}
+    :{designation:n?`Séjour de ${ciPl(n,"nuitée")}`+(room?" · "+room:""):"Hébergement"+(room?" · "+room:""),detail:`Du ${frd(r.arrival)} au ${frd(r.departure)}${per}`,qte:1,pu:heb,montant:heb,soumis:true}];
+  if(tax>0){
+    const ok=pax&&n&&Math.abs(pax*n*ciRate()-tax)<.005;
+    L.push({designation:"Taxe de séjour",detail:pax&&n?`${ciPl(pax,"personne")} × ${ciPl(n,"nuit")}`:"",qte:ok?pax*n:1,pu:ok?ciRate():tax,montant:tax,soumis:false});
+  }
+  CI.lines=L;
+}
+function ciLog(){try{const a=JSON.parse(getP("ci_log")||"[]");return Array.isArray(a)?a:[];}catch(e){return[];}}
+function ciNextNum(){
+  const last=getP("ci_last");
+  if(last){const m=String(last).match(/^(.*?)(\d+)$/);if(m)return m[1]+String(+m[2]+1).padStart(m[2].length,"0");}
+  const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-001`;
+}
+function ciNumHint(){
+  const last=getP("ci_last");
+  $("ci_numhint").textContent=last?`Dernière facture enregistrée : ${last}.`:"Première facture : numéro provisoire. Mets à la suite du dernier numéro utilisé si besoin.";
+}
+function ciFillRes(){
+  const cur=$("ci_res").value;
+  const rows=state.reservations.filter(r=>effStatus(r)!=="Annulée").slice().sort((a,b)=>String(b.arrival||"").localeCompare(String(a.arrival||"")));
+  $("ci_res").innerHTML=`<option value="">— Saisie libre —</option>`+rows.map(r=>`<option value="${r.id}">${frd(r.arrival)} · ${esc(r.guest)}${r.room?" · "+esc(r.room):""} · ${esc(effStatus(r))}</option>`).join("");
+  if(cur&&rows.some(r=>String(r.id)===cur))$("ci_res").value=cur;
+}
+function ciLoadRes(){
+  const id=+$("ci_res").value;
+  const r=state.reservations.find(x=>x.id===id)||null;CI.res=r;
+  const used=ciLog().some(x=>x.n===$("ci_num").value.trim());
+  if(!$("ci_num").value.trim()||used)$("ci_num").value=ciNextNum();
+  if(!r){ciRenderLines();ciRender();return;}
+  const n=nights(r.arrival,r.departure),pax=+r.pax||0;
+  $("ci_guest").value=ciCase(r.guest);$("ci_soc").value="";$("ci_addr").value="";$("ci_ids").value="";
+  $("ci_type").value=(!(+r.amount)&&extrasOf(r.id).length)?"restauration":"sejour";
+  $("ci_cur").value=r.currency==="EUR"?"EUR":"MAD";
+  $("ci_taxe").value=(+r.tourist_tax)?r2(r.tourist_tax):(pax*n*ciRate()||"");
+  $("ci_taxinc").value=r.tax_included?"1":"0";
+  $("ci_reg").value=ciPay(r.pay_mode);
+  $("ci_acq").checked=effStatus(r)==="Terminée";
+  $("ci_acqtxt").value=frd(r.departure)+" · "+(r.pay_mode||"Carte (TPE)");
+  ciBuild();ciRenderLines();ciRender();
+}
+function ciRenderLines(){
+  $("ci_lines").innerHTML=CI.lines.length?CI.lines.map((l,i)=>`<tr>
+    <td><input data-cf="date" data-i="${i}" value="${esc(l.date||"")}" placeholder="JJ/MM/AAAA" style="width:98px"></td>
+    <td><input data-cf="designation" data-i="${i}" value="${esc(l.designation)}"></td>
+    <td><input data-cf="detail" data-i="${i}" value="${esc(l.detail||"")}"></td>
+    <td><input type="number" step="any" data-cf="qte" data-i="${i}" value="${l.qte}" style="width:62px"></td>
+    <td><input type="number" step="0.01" data-cf="pu" data-i="${i}" value="${l.pu}" style="width:100px"></td>
+    <td><input type="number" step="0.01" data-cf="montant" data-i="${i}" value="${l.montant}" style="width:104px"></td>
+    <td><input type="checkbox" data-cf="soumis" data-i="${i}" ${l.soumis?"checked":""}></td>
+    <td><button class="act danger" data-cdel="${i}">✕</button></td></tr>`).join("")
+    :`<tr><td colspan="8" class="empty-row">Aucune ligne. Choisis une réservation ou ajoute une ligne.</td></tr>`;
+  $("ci_lines").querySelectorAll("input").forEach(el=>{
+    el.addEventListener(el.type==="checkbox"?"change":"input",()=>{
+      const l=CI.lines[+el.dataset.i],f=el.dataset.cf,row=el.closest("tr");
+      if(f==="soumis")l.soumis=el.checked;
+      else if(f==="qte"||f==="pu"){l[f]=+el.value||0;l.montant=r2(l.qte*l.pu);row.querySelector('[data-cf=montant]').value=l.montant;}
+      else if(f==="montant"){l.montant=r2(el.value);if(+l.qte===1){l.pu=l.montant;row.querySelector('[data-cf=pu]').value=l.pu;}}
+      else l[f]=el.value;
+      ciRender();
+    });
+  });
+  $("ci_lines").querySelectorAll("[data-cdel]").forEach(b=>b.onclick=()=>{CI.lines.splice(+b.dataset.cdel,1);ciRenderLines();ciRender();});
+}
+/* Calcul : mêmes règles que le script du modèle (HT = TTC / (1 + TVA) sur le total) */
+function ciCompute(){
+  const tva=+$("ci_tva").value||0,resto=$("ci_type").value==="restauration";
+  const L=CI.lines,f=1+tva/100;let total,trows=[];const rows=[];
+  if(resto){
+    total=r2(L.reduce((s,l)=>s+(+l.montant||0),0));
+    L.forEach(l=>rows.push({l,mt:+l.montant||0}));
+    if(tva){const ht=r2(total/f);trows=[["Total HT",ht],[`TVA ${tva} % (restauration)`,r2(total-ht)]];}
+    else trows=[["TVA non applicable",null]];
+  }else{
+    const heb=r2(L.filter(l=>l.soumis).reduce((s,l)=>s+(+l.montant||0),0));
+    const hors=r2(L.filter(l=>!l.soumis).reduce((s,l)=>s+(+l.montant||0),0));
+    L.forEach(l=>{let mt=+l.montant||0,pu=l.pu,q=l.qte;
+      if(tva&&l.soumis){mt=r2(mt/f);pu=mt;q=1;}
+      if(pu==null||pu===""){pu=mt;q=1;}
+      rows.push({l,mt,pu:+pu,q});});
+    total=r2(heb+hors);
+    trows=tva?[["Total HT hébergement",r2(heb/f)],[`TVA ${tva} % (hébergement)`,r2(heb-r2(heb/f))],["Total TTC hébergement",heb]]:[["Hébergement",heb]];
+    L.filter(l=>!l.soumis).forEach(l=>trows.push([l.designation,+l.montant||0]));
+    if(!tva)trows.push(["TVA non applicable",null]);
+  }
+  return{tva,resto,rows,trows,total};
+}
+function ciRender(){
+  const r=CI.res,cur=$("ci_cur").value,M=v=>ciMoney(v,cur),C=ciCompute(),cl=ciClient();
+  const nom=ciE("ci_e_nom"),marque=ciE("ci_e_marque"),adr=ciE("ci_e_adresse");
+  const ids=`ICE ${ciE("ci_e_ice")||"—"} · IF ${ciE("ci_e_if")||"—"} · RC ${ciE("ci_e_rc")||"—"}`;
+  const pied=`${nom} · ${marque} · ${adr} · ${ids} · Patente ${ciE("ci_e_patente")||"—"}`;
+  const n=r?nights(r.arrival,r.departure):0,pax=r?+r.pax||0:0;
+  const dd=r?`${frd(r.arrival)} → ${frd(r.departure)}`:"";
+  let right=[],rTitle="Séjour",ref=["Réservation",""];
+  if(r){
+    if(C.resto){right=[["Chambre",r.room||"—"],["Arrivée / Départ",dd]];
+      ref=["Référence séjour",`${ciRoom(r)||"Séjour"} · ${frd(r.arrival).slice(0,5)} → ${frd(r.departure)}`];}
+    else{right=[["Chambre",r.room||"—"],["Arrivée / Départ",dd],["Nuits · Personnes",`${ciPl(n,"nuit")}${pax?" · "+ciPl(pax,"personne"):""}`],["Canal",r.channel||"—"]];
+      ref=["Réservation",r.channel||""];}
+  }else if(C.resto){rTitle="Consommations";const d0=CI.lines[0]&&CI.lines[0].date;right=d0?[["Date",d0]]:[];ref=["Objet",d0?"Restauration du "+d0:"Restauration"];}
+  const sfx=C.tva?" HT":"";
+  const head=C.resto
+    ?`<tr><th class="sp">Date</th><th class="sp">Désignation</th><th class="sp r">${C.tva?"Montant TTC":"Montant"}</th></tr>`
+    :`<tr><th class="sp">Désignation</th><th class="sp r">Qté</th><th class="sp r">PU${sfx}</th><th class="sp r">Montant${sfx}</th></tr>`;
+  const body=C.rows.map(x=>C.resto
+    ?`<tr><td class="dt">${esc(x.l.date||"")}</td><td>${esc(x.l.designation)}</td><td class="r">${M(x.mt)}</td></tr>`
+    :`<tr><td><b>${esc(x.l.designation)}</b>${x.l.detail?`<div class="d">${esc(x.l.detail)}</div>`:""}</td><td class="r">${String(x.q).replace(".",",")}</td><td class="r">${M(x.pu)}</td><td class="r">${M(x.mt)}</td></tr>`).join("")
+    ||`<tr><td colspan="4" style="color:#999">Aucune ligne.</td></tr>`;
+  const acq=$("ci_acq").checked;
+  $("paperClient").innerHTML=`
+    <div class="ch"><div><div class="nm">${esc(nom)}<b> · ${esc(marque)}</b></div><div class="mo">${esc(adr)}</div><div class="mo">${esc(ids)}</div></div>
+      <div class="rt"><div class="nm">${C.resto?"Facture restauration":"Facture"}</div><div class="mo">N° ${esc($("ci_num").value||"—")}</div><div class="mo">Émise le ${frd($("ci_date").value)}</div></div></div>
+    <div class="boxes">
+      <div class="bx"><div class="sp">Facturé à</div><div class="cn">${esc(cl.nom||"—")}</div>
+        ${cl.attention?`<div class="ln">À l'attention de ${esc(cl.attention)}</div>`:""}
+        ${cl.lines.map(x=>`<div class="ln">${esc(x)}</div>`).join("")}
+        ${cl.ids.map(([k,v])=>`<div class="idr">${k?`<span class="sp">${esc(k)}</span>`:""}<span class="v">${esc(v)}</span></div>`).join("")}</div>
+      <div class="bx"><div class="sp">${rTitle}</div>${right.map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}</div>
+    </div>
+    <table class="ct"><thead>${head}</thead><tbody>${body}</tbody></table>
+    <div class="mid">
+      <div>${acq?`<div class="stamp"><div class="a">ACQUITTÉE</div><div class="b">${esc($("ci_acqtxt").value)}</div></div>`:""}</div>
+      <div class="tots">${C.trows.map(([k,v])=>`<div class="t"><span>${esc(k)}</span><span>${v==null?"":M(v)}</span></div>`).join("")}
+        <div class="net"><span>${C.tva?"NET À PAYER TTC":"NET À PAYER"}</span><span>${M(C.total)}</span></div></div>
+    </div>
+    <div class="words"><div class="sp">Arrêtée la présente facture à la somme de</div>
+      <div class="w">${esc(ciLettres(C.total,cur))}${C.tva?" TTC":""} (${M(C.total)})</div></div>
+    <div class="regs"><div><div class="sp">Mode de règlement</div><div class="v">${esc($("ci_reg").value)}</div></div>
+      <div><div class="sp">${esc(ref[0])}</div><div class="v">${esc(ref[1])}</div></div></div>
+    <div class="sig"><div></div><div class="sp">Cachet et signature de l'établissement</div></div>
+    <div class="foot"><div>${esc(pied)}<br>Merci pour votre séjour.</div></div>`;
+  ciWarnings(C);
+}
+/* Contrôles avant impression (section 5 du modèle) */
+function ciWarnings(C){
+  const r=CI.res,w=[],cl=ciClient();
+  if(r){
+    const n=nights(r.arrival,r.departure),pax=+r.pax||0,tax=r2($("ci_taxe").value);
+    if(!C.resto&&tax&&pax&&n&&Math.abs(pax*n*ciRate()-tax)>=.005)w.push(`<b>Taxe de séjour incohérente</b> : ${ciMoney(tax,"MAD")} au lieu de ${pax} pers. × ${n} nuits × ${ciRate()} dh = ${ciMoney(pax*n*ciRate(),"MAD")}.`);
+    if(!C.resto&&$("ci_taxinc").value==="0"&&tax)w.push(`<b>Taxe en sus</b> : le total (${ciMoney(C.total,$("ci_cur").value)}) ne correspond plus au montant de la fiche (${ciMoney(r.amount,r.currency||"MAD")}).`);
+    if(!C.resto&&r.currency==="EUR"&&(r.tax_currency||"MAD")!=="EUR"&&tax)w.push(`<b>Devises mélangées</b> : séjour en €, taxe de séjour en dh. Convertis la taxe ou facture en dh.`);
+    if(r.channel==="Airbnb"&&/carte|tpe/i.test($("ci_reg").value))w.push(`<b>Airbnb avec « Carte (TPE) »</b> : c'est Airbnb qui encaisse le client, le mode de règlement est probablement faux.`);
+    if($("ci_acq").checked&&effStatus(r)!=="Terminée")w.push(`<b>Tampon « Acquittée »</b> alors que le séjour est « ${effStatus(r)} ». À mettre une fois le paiement fait.`);
+    const twins=state.reservations.filter(x=>x.id!==r.id&&effStatus(x)!=="Annulée"&&x.arrival===r.arrival&&x.departure===r.departure&&norm(x.guest)===norm(r.guest));
+    if(twins.length)w.push(`<b>Même client, mêmes dates, ${twins.length+1} chambres</b> (${[r,...twins].map(x=>esc(x.room||"?")).join(", ")}) : une facture unique est possible avec « ＋ Ligne ».`);
+  }
+  if(/\bamis\b|famille de|groupe|\btest\b|perso|bloqu|interne/i.test($("ci_guest").value))w.push(`<b>Nom du client</b> : « ${esc($("ci_guest").value)} » ne ressemble pas à un vrai nom. Une facture à ce nom ne vaut rien.`);
+  if(!cl.nom.trim())w.push(`<b>Client</b> : nom manquant.`);
+  if($("ci_soc").value.trim()&&!cl.lines.length)w.push(`<b>Société sans adresse</b> : sa comptabilité la demandera.`);
+  if(!ciE("ci_e_if")||!ciE("ci_e_rc")||!ciE("ci_e_patente"))w.push(`<b>En-tête</b> : IF, RC ou patente vides. Ces mentions sont obligatoires au Maroc pour une facture B2B (à remplir dans « En-tête de l'établissement »).`);
+  const num=$("ci_num").value.trim();
+  if(num&&ciLog().some(x=>x.n===num&&!(CI.saved===num)))w.push(`<b>Numéro déjà utilisé</b> : ${esc(num)}.`);
+  $("ci_warn").innerHTML=w.length?`<div class="ci-warn">${w.join("<br>")}</div>`:"";
+}
+function ciSnapshot(){
+  const v={};["ci_res","ci_type","ci_num","ci_date","ci_tva","ci_cur","ci_civ","ci_guest","ci_soc","ci_addr","ci_ids","ci_reg","ci_taxe","ci_taxinc","ci_acqtxt"].forEach(id=>v[id]=$(id).value);
+  v.ci_acq=$("ci_acq").checked;v.lines=CI.lines;return v;
+}
+function ciRestore(v){
+  ciFillRes();
+  for(const id in v){if(id==="lines")continue;const el=$(id);if(!el)continue;if(el.type==="checkbox")el.checked=!!v[id];else el.value=v[id];}
+  CI.res=state.reservations.find(x=>String(x.id)===String(v.ci_res))||null;
+  CI.lines=JSON.parse(JSON.stringify(v.lines||[]));CI.saved=v.ci_num;
+  ciRenderLines();ciRender();window.scrollTo({top:0,behavior:"smooth"});
+}
+async function ciSave(){
+  const num=$("ci_num").value.trim();
+  if(!num){toast("Numéro de facture requis",true);$("ci_num").focus();return false;}
+  if(!CI.lines.length){toast("Aucune ligne à facturer",true);return false;}
+  const log=ciLog();
+  if(log.some(x=>x.n===num)&&CI.saved!==num&&!confirm("La facture "+num+" existe déjà. La remplacer ?"))return false;
+  const C=ciCompute(),cl=ciClient();
+  const entry={n:num,d:$("ci_date").value,c:cl.nom,t:C.total,cur:$("ci_cur").value,data:ciSnapshot()};
+  await setP("ci_log",JSON.stringify([entry,...log.filter(x=>x.n!==num)].slice(0,200)));
+  const last=getP("ci_last");
+  if(!last||num.localeCompare(last,undefined,{numeric:true})>0)await setP("ci_last",num);
+  CI.saved=num;ciNumHint();ciRenderLog();ciRender();toast("Facture "+num+" enregistrée");return true;
+}
+function ciRenderLog(){
+  const log=ciLog();
+  $("ci_log").innerHTML=log.length?log.map((x,i)=>`<tr><td class="mono">${esc(x.n)}</td><td class="mono" style="font-size:11.5px">${frd(x.d)}</td><td>${esc(x.c)}</td>
+    <td class="num">${ciMoney(x.t,x.cur)}</td><td><button class="act" data-copen="${i}">Ouvrir</button></td></tr>`).join("")
+    :`<tr><td colspan="5" class="empty-row">Aucune facture client enregistrée.</td></tr>`;
+  $("ci_log").querySelectorAll("[data-copen]").forEach(b=>b.onclick=()=>ciRestore(ciLog()[+b.dataset.copen].data));
+}
+async function ciEnsureSaved(){
+  const num=$("ci_num").value.trim();
+  if(CI.saved===num&&num)return true;
+  if(confirm("Enregistrer la facture n° "+(num||"?")+" avant de l'imprimer ? (Annuler = imprimer sans enregistrer)"))return await ciSave();
+  return true;
+}
+async function ciPrint(){
+  if(!CI.lines.length){toast("Aucune ligne à facturer",true);return;}
+  if(!await ciEnsureSaved())return;
+  ciRender();
+  document.getElementById("printRoot")?.remove();
+  const root=document.createElement("div");root.id="printRoot";
+  const clone=$("paperClient").cloneNode(true);clone.removeAttribute("id");
+  root.appendChild(clone);document.body.appendChild(root);document.body.classList.add("printing");
+  let done=false;
+  const cleanup=()=>{if(done)return;done=true;document.body.classList.remove("printing");root.remove();window.removeEventListener("afterprint",cleanup);};
+  window.addEventListener("afterprint",cleanup);
+  setTimeout(()=>{window.print();setTimeout(cleanup,1500);},80);
+}
+async function ciPdf(){
+  if(!CI.lines.length){toast("Aucune ligne à facturer",true);return;}
+  if(typeof html2pdf==="undefined"){toast("Module PDF indisponible — utilise Imprimer puis « Enregistrer en PDF »",true);return;}
+  if(!await ciEnsureSaved())return;
+  ciRender();
+  const clone=$("paperClient").cloneNode(true);clone.removeAttribute("id");
+  clone.style.cssText+=`;width:${A4_W}px;max-width:${A4_W}px;min-height:1040px;margin:0;padding:0;box-shadow:none;border:none;border-radius:0`;
+  const host=document.createElement("div");host.id="pdfHost";
+  host.style.cssText="position:absolute;left:0;top:0;width:"+A4_W+"px;background:#FBFAF6;z-index:-1;opacity:0;pointer-events:none;";
+  host.appendChild(clone);document.body.appendChild(host);
+  const sx=window.scrollX,sy=window.scrollY;window.scrollTo(0,0);
+  const done=()=>{host.remove();window.scrollTo(sx,sy);};
+  toast("Génération du PDF…");
+  html2pdf().set({margin:[10,10,10,10],filename:"Facture_Riad_Timija_"+($("ci_num").value.trim()||"brouillon")+".pdf",
+    image:{type:"jpeg",quality:.98},html2canvas:{scale:2,backgroundColor:"#FBFAF6",useCORS:true,logging:false,x:0,y:0,scrollX:0,scrollY:0,width:A4_W,windowWidth:A4_W},
+    jsPDF:{unit:"mm",format:"a4",orientation:"portrait",compress:true},pagebreak:{mode:["avoid-all"]}})
+    .from(clone).save().then(()=>{done();toast("PDF téléchargé");}).catch(()=>{done();toast("Échec du PDF — utilise Imprimer",true);});
+}
+function ciOpen(){
+  ciFillRes();
+  for(const id in CI_ETAB)if(document.activeElement!==$(id))$(id).value=ciE(id);
+  if(!$("ci_date").value)$("ci_date").value=todayStr();
+  if(!$("ci_num").value)$("ci_num").value=ciNextNum();
+  if(!$("ci_reg").value&&!CI.res)$("ci_reg").value="Carte bancaire (TPE)";
+  ciNumHint();ciRenderLines();ciRender();ciRenderLog();
+}
+async function ciSaveEtab(){
+  const rows=[];for(const id in CI_ETAB){const k=CI_ETAB[id][0],v=$(id).value.trim();state.params[k]=v;rows.push({k,v});}
+  const{error}=await sb.from("params").upsert(rows);
+  if(error){toast("Erreur : "+error.message,true);return;}
+  ciRender();toast("En-tête enregistré");
+}
+
 /* ---- Auth / init ---- */
 async function doLogin(){
   const pw=$("g_pw").value;if(!pw){$("g_msg").textContent="Saisis le mot de passe";return;}
@@ -1501,6 +1937,7 @@ function switchTab(v){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.v===v));
   document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active",s.id==="v-"+v));
   if(v==="analyses")renderDash();
+  if(v==="factclient")ciOpen();
 }
 (function(){
   const placeholder=SUPABASE_URL.includes("VOTRE-PROJET")||SUPABASE_ANON_KEY.includes("VOTRE_CLE");
@@ -1528,6 +1965,18 @@ function switchTab(v){
   $("rel_csv").onclick=expRelCSV;
   $("r_lodgify").onclick=syncLodgify;
   $("pdfBtn").onclick=pdfDoc;
+  $("ci_res").onchange=ciLoadRes;
+  $("ci_type").onchange=()=>{if(CI.res)ciBuild();ciRenderLines();ciRender();};
+  ["ci_taxe","ci_taxinc"].forEach(id=>$(id).addEventListener("change",()=>{if(CI.res&&$("ci_type").value==="sejour"){ciBuild();ciRenderLines();}ciRender();}));
+  ["ci_num","ci_date","ci_tva","ci_cur","ci_civ","ci_guest","ci_soc","ci_addr","ci_ids","ci_reg","ci_acqtxt"].forEach(id=>$(id).addEventListener("input",ciRender));
+  ["ci_tva","ci_cur","ci_civ","ci_date"].forEach(id=>$(id).addEventListener("change",ciRender));
+  $("ci_acq").addEventListener("change",ciRender);
+  $("ci_addline").onclick=()=>{CI.lines.push({date:frd($("ci_date").value),designation:"",detail:"",qte:1,pu:0,montant:0,soumis:true});ciRenderLines();ciRender();};
+  $("ci_regen").onclick=()=>{if(!CI.res){toast("Choisis d'abord une réservation",true);return;}ciBuild();ciRenderLines();ciRender();};
+  $("ci_save").onclick=ciSave;
+  $("ci_print").onclick=ciPrint;
+  $("ci_pdf").onclick=ciPdf;
+  $("ci_e_save").onclick=ciSaveEtab;
   $("d_cur").onchange=()=>renderDash();
   $("d_h").onchange=()=>renderDash();
   $("d_fxmode").onchange=async()=>{await setP("fx_mode",$("d_fxmode").value);renderDash();};
